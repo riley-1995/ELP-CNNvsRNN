@@ -1,0 +1,7 @@
+**/__pycache__
+logs/
+ckpt/
+data_storage/
+model.keras
+ptb-xl/
+*.png
