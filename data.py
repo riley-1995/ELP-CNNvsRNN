@@ -21,33 +21,18 @@ def process_file(args):
     data = wfdb.rdsamp(os.path.join(root_path, os.path.splitext(f)[0]), channel_names=leads, return_res=32)[0].T
     return [index, data]
 
-class Filter():
+class Spectrogram():
     def __init__(self):
 
-        # Define the filter
-        lowcut = 1.0          # Lower cutoff frequency (Hz)
-        highcut = 45.0        # Upper cutoff frequency (Hz)
         fs = 100.0            # Sampling frequency (Hz)
-        order = 2             # Filter order (higher = steeper rolloff)
-        self.sos = self.design_iir_bandpass(lowcut, highcut, fs, order)
 
         # Define a spectrogram
         nperseg = fs * 1    # Length of each segment in seconds
         hop = 2             # Similar to stride
         w = get_window(('gaussian', 15), nperseg)
         self.sft = ShortTimeFFT(w, hop, fs=fs, mfft=150)
-
-    def design_iir_bandpass(self, lowcut, highcut, fs, order=4):
-        '''
-        Designs the bandpass filer
-        '''
-        nyquist = 0.5 * fs  # Nyquist frequency
-        low = lowcut / nyquist
-        high = highcut / nyquist
-        sos = butter(order, [low, high], btype='band', output='sos')  # Second-order sections
-        return sos
     
-    def apply_filter_spectrogram(self, data):
+    def apply_spectrogram(self, data):
         '''
         Applies the filter and the spectrogram to the 1D data
         '''
@@ -61,19 +46,10 @@ class PTBXLDataset(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-        self.leads = ['I', 'II', 'V2']
-        self.classes = ['ABNORM']
-        self.sampling_rate = 100 # or 500
-
-        if not os.path.exists(os.path.join(self.cfg.DATABASE_ROOT_PATH, self.cfg.DATABASE_FILE_NAME)):
-            self.create_updated_database_metafile(sampling_rate=self.sampling_rate)
-
         self.dataset = pd.read_json(os.path.join(self.cfg.DATABASE_ROOT_PATH, self.cfg.DATABASE_FILE_NAME))
 
-        self.dataset = self.dataset[['filename_lr', 'filename_hr'] + self.classes]
-
-        self.filter = Filter()
-        self.filter_function = self.filter.apply_filter_spectrogram
+        self.filter = Spectrogram()
+        self.filter_function = self.filter.apply_spectrogram
 
     def create_updated_database_metafile(self, sampling_rate=100):
         print('Creating updated database metafile...') 

@@ -1,7 +1,6 @@
 **/__pycache__
 logs/
 ckpt/
-data_storage/
+data/
 model.keras
-ptb-xl/
 *.png
