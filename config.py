@@ -4,10 +4,11 @@ import os
 class Configuration(object):
 
 	# Data related
-	DATABASE_ROOT_PATH = 'ptb-xl'	# Location of the ptb-xl dataset
-	DATABASE_FILE_NAME = 'updated_ptbxl_database.json'
-	DATASET_STORAGE = 'data_storage'
-	DATASET_FOLDER = '3_lead_data_2_label_abnormal_1_label'
+	DATASET_FOLDER = 'stft_records'
+
+	TRAIN_FILE = 'train.tfrecord'
+	VALIDATE_FILE = 'validate.tfrecord'
+	TEST_FILE = 'test.tfrecord'
 
 	CROSS_VALIDATE = False
 	K_FOLDS=5

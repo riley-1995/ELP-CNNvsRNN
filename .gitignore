@@ -2,5 +2,6 @@
 logs/
 ckpt/
 data/
+stft_records/
 model.keras
 *.png
