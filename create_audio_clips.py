@@ -61,80 +61,93 @@ def save_audio_to_wav(filename, audio_data, sample_rate, num_channels=1, sample_
 
 # Open the meta data
 data_folder = "/home/lucas/Desktop/ELP-sounds-folder"
-meta_file = "nn_ele_hb_00-24hr_TrainingSet.txt"
-data = pd.read_csv(os.path.join(data_folder, meta_file), delimiter='\t')
-
-# Filter out meta data
-negative_signal = ['DUMMY_NoEles', 'DUMMY_noEles']
-positive_samples_data = data[~data['Tag 1'].isin(negative_signal)]
-positive_samples_data = positive_samples_data[~positive_samples_data['notes'].str.contains('faint|marginal|gorilla', case=False, na=False)]
-
-# Output folders
-positive_samples_folder = 'raw_audio_positive_samples'
-negative_samples_folder = 'raw_audio_negative_samples'
-
-if not os.path.exists(positive_samples_folder) or not os.path.isdir(positive_samples_folder):
-    os.mkdir(positive_samples_folder)
-
-if not os.path.exists(negative_samples_folder) or not os.path.isdir(negative_samples_folder):
-    os.mkdir(negative_samples_folder)
-  
-sample_length = 10 # seconds
-target_sr = 4000 # hz
+meta_files = ["nn_ele_hb_00-24hr_TrainingSet.txt", "NN_Random_Sample_Hand_ele.txt"]
 
 total_positive_samples = 0
 total_negative_samples = 0
 
-for file in set(positive_samples_data['Begin File']):
-    target_file = os.path.join(data_folder, file)
+for meta_file in meta_files:
+    print(f"Opening {meta_file}")
+    data = pd.read_csv(os.path.join(data_folder, meta_file), delimiter='\t')
 
-    if os.path.exists(target_file):
-        print(f"Opening file: {target_file}")
-        clips = positive_samples_data[positive_samples_data['Begin File'] == file]
+    # Filter out meta data
+    try:
+        negative_signal = ['DUMMY_NoEles', 'DUMMY_noEles']
+        data = data[~data['Tag 1'].isin(negative_signal)]
+    except:
+        pass
 
-        # Create positive samples of elephant rumbles
-        positive_sample_counter = 0
-        params = None
-        for i, clip in clips.iterrows():
+    try:
+        data = data[~data['notes'].str.contains('faint|marginal|gorilla', case=False, na=False)]
+    except:
+        pass
 
-            params, audio_clip = read_wav_frames(target_file, clip['File Offset (s)'], sample_length)
-            sampling_rate = params.framerate
-            positive_sample_counter += 1
-            total_positive_samples += 1
+    # Output folders
+    positive_samples_folder = 'raw_audio_positive_samples'
+    negative_samples_folder = 'raw_audio_negative_samples'
 
-            # Process
-            audio_clip = np.asarray(audio_clip, dtype=np.int16)
-            audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
+    if not os.path.exists(positive_samples_folder) or not os.path.isdir(positive_samples_folder):
+        os.mkdir(positive_samples_folder)
 
-            save_audio_to_wav(os.path.join(positive_samples_folder, f'positive_sample_{total_positive_samples}.wav'), audio_clip, target_sr, 1, 2)
+    if not os.path.exists(negative_samples_folder) or not os.path.isdir(negative_samples_folder):
+        os.mkdir(negative_samples_folder)
+    
+    sample_length = 10 # seconds
+    target_sr = 4000 # hz
 
-        print(f"{positive_sample_counter} collected from {target_file}.")
-        negative_samples = 0
+    for file in set(data['Begin File']):
+        target_file = os.path.join(data_folder, file)
 
-        clip_start_times=clips['File Offset (s)']
-        clip_end_times=(clips['File Offset (s)'] + sample_length).astype(int)
+        if os.path.exists(target_file):
+            print(f"Opening file: {target_file}")
+            clips = data[data['Begin File'] == file]
 
-        total_time = params.nframes / params.framerate
-        # Create samples of no elephant rumble
-        while negative_samples < positive_sample_counter:
-            
-            negative_sample_begin_time = max(0, random.randint(0, int(total_time)) - sample_length - 1)# subtract the length of the sample so the clip doesn't go off the file
-            negative_sample_end_time = negative_sample_begin_time + sample_length
+            # Create positive samples of elephant rumbles
+            positive_sample_counter = 0
+            params = None
+            for i, clip in clips.iterrows():
 
-            overlap = np.any(
-                (clip_start_times <= negative_sample_begin_time) & (negative_sample_begin_time <= clip_end_times) |
-                (clip_start_times <= negative_sample_end_time) & (negative_sample_end_time <= clip_end_times)
-            )
-
-            if not overlap:
-                negative_samples += 1
-                total_negative_samples += 1
-            
-                params, audio_clip = read_wav_frames(target_file, negative_sample_begin_time, sample_length)
+                params, audio_clip = read_wav_frames(target_file, clip['File Offset (s)'], sample_length)
                 sampling_rate = params.framerate
+                positive_sample_counter += 1
+                total_positive_samples += 1
 
                 # Process
                 audio_clip = np.asarray(audio_clip, dtype=np.int16)
                 audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
 
-                save_audio_to_wav(os.path.join(negative_samples_folder, f'negative_sample_{total_negative_samples}.wav'), audio_clip, target_sr, 1, 2)
+                save_audio_to_wav(os.path.join(positive_samples_folder, f'positive_sample_{total_positive_samples}.wav'), audio_clip, target_sr, 1, 2)
+
+            #print(f"{positive_sample_counter} collected from {target_file}.")
+            negative_samples = 0
+
+            clip_start_times=clips['File Offset (s)']
+            clip_end_times=(clips['File Offset (s)'] + sample_length).astype(int)
+
+            total_time = params.nframes / params.framerate
+            # Create samples of no elephant rumble
+            while negative_samples < positive_sample_counter:
+                
+                negative_sample_begin_time = max(0, random.randint(0, int(total_time)) - sample_length - 1)# subtract the length of the sample so the clip doesn't go off the file
+                negative_sample_end_time = negative_sample_begin_time + sample_length
+
+                overlap = np.any(
+                    (clip_start_times <= negative_sample_begin_time) & (negative_sample_begin_time <= clip_end_times) |
+                    (clip_start_times <= negative_sample_end_time) & (negative_sample_end_time <= clip_end_times)
+                )
+
+                if not overlap:
+                    negative_samples += 1
+                    total_negative_samples += 1
+                
+                    params, audio_clip = read_wav_frames(target_file, negative_sample_begin_time, sample_length)
+                    sampling_rate = params.framerate
+
+                    # Process
+                    audio_clip = np.asarray(audio_clip, dtype=np.int16)
+                    audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
+
+                    save_audio_to_wav(os.path.join(negative_samples_folder, f'negative_sample_{total_negative_samples}.wav'), audio_clip, target_sr, 1, 2)
+        else:
+            print(f"Target file {target_file} does not exist...")
+    print(f"{total_positive_samples} samples created...")
