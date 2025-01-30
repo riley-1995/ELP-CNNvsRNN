@@ -57,20 +57,6 @@ def compute_statistics(dataset):
 def normalize_dataset(dataset, mean, std):
     return dataset.map(lambda audio: (audio - mean ) / std)
 
-def stft_hann_window(audio, frame_length, frame_step):
-    stft = tf.signal.stft(
-        audio,
-        frame_length=frame_length,
-        frame_step=frame_step,
-        window_fn=tf.signal.hann_window
-    )
-
-    return tf.math.log(tf.abs(stft) + 1e-10)
-
-def apply_stft(dataset, frame_length, frame_step):
-    return dataset.map(lambda audio, label: (stft_hann_window(audio, frame_length, frame_step), label), 
-                       num_parallel_calls=tf.data.AUTOTUNE)
-
 def add_label_to_sample(dataset: tf.data.Dataset, label):
 
     label_tensor = tf.convert_to_tensor(label, dtype=tf.int64)
@@ -164,9 +150,7 @@ for dataset in raw_datasets[1:]:
 
 combined_dataset = combined_dataset.shuffle(10000, reshuffle_each_iteration=False)
 
-
 ####### Create the Train, Test, Validate split
-
 train, validate, test = stratified_split(combined_dataset)
 
 sets = [
@@ -181,20 +165,4 @@ if not os.path.exists(audio_folder) or not os.path.isdir(audio_folder):
     os.mkdir(audio_folder)
 
 for set in sets:
-    write_tfrecords(set[0], os.path.join(audio_folder, f"raw_audio_{set[1]}"))
-
-
-
-# Writing raw audio dataset
-spectrogram_dataset = "spectrogram_tfrecords"
-if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
-    os.mkdir(spectrogram_dataset)
-
-frame_length = 2048
-frame_step = 128
-
-for set in sets:
-    dataset = apply_stft(set[0], frame_length, frame_step)
-
-    write_tfrecords(dataset, os.path.join(spectrogram_dataset, f"spectrogram_{set[1]}"))
-
+    write_tfrecords(set[0], os.path.join(audio_folder, f"audio_{set[1]}"))
