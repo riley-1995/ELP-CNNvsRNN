@@ -66,6 +66,9 @@ meta_files = ["nn_ele_hb_00-24hr_TrainingSet.txt", "NN_Random_Sample_Hand_ele.tx
 total_positive_samples = 0
 total_negative_samples = 0
 
+sample_length = 10 # seconds
+target_sr = 4000 # hz
+
 for meta_file in meta_files:
     print(f"Opening {meta_file}")
     data = pd.read_csv(os.path.join(data_folder, meta_file), delimiter='\t')
@@ -92,8 +95,7 @@ for meta_file in meta_files:
     if not os.path.exists(negative_samples_folder) or not os.path.isdir(negative_samples_folder):
         os.mkdir(negative_samples_folder)
     
-    sample_length = 10 # seconds
-    target_sr = 4000 # hz
+
 
     for file in set(data['Begin File']):
         target_file = os.path.join(data_folder, file)
@@ -109,14 +111,18 @@ for meta_file in meta_files:
 
                 params, audio_clip = read_wav_frames(target_file, clip['File Offset (s)'], sample_length)
                 sampling_rate = params.framerate
-                positive_sample_counter += 1
-                total_positive_samples += 1
+
 
                 # Process
                 audio_clip = np.asarray(audio_clip, dtype=np.int16)
                 audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
 
-                save_audio_to_wav(os.path.join(positive_samples_folder, f'positive_sample_{total_positive_samples}.wav'), audio_clip, target_sr, 1, 2)
+                if len(audio_clip) == (sample_length * target_sr):
+                    positive_sample_counter += 1
+                    total_positive_samples += 1
+                    save_audio_to_wav(os.path.join(positive_samples_folder, f'positive_sample_{total_positive_samples}.wav'), audio_clip, target_sr, 1, 2)
+                else:
+                    print("Removing audio clip: insufficient length.")
 
             #print(f"{positive_sample_counter} collected from {target_file}.")
             negative_samples = 0
@@ -137,8 +143,6 @@ for meta_file in meta_files:
                 )
 
                 if not overlap:
-                    negative_samples += 1
-                    total_negative_samples += 1
                 
                     params, audio_clip = read_wav_frames(target_file, negative_sample_begin_time, sample_length)
                     sampling_rate = params.framerate
@@ -147,7 +151,13 @@ for meta_file in meta_files:
                     audio_clip = np.asarray(audio_clip, dtype=np.int16)
                     audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
 
-                    save_audio_to_wav(os.path.join(negative_samples_folder, f'negative_sample_{total_negative_samples}.wav'), audio_clip, target_sr, 1, 2)
+                    if len(audio_clip) == (sample_length * target_sr):
+                        negative_samples += 1
+                        total_negative_samples += 1
+                        save_audio_to_wav(os.path.join(negative_samples_folder, f'negative_sample_{total_negative_samples}.wav'), audio_clip, target_sr, 1, 2)
+                    else:
+                        print("Removing audio clip: insufficient length.")
+                        
         else:
             print(f"Target file {target_file} does not exist...")
     print(f"{total_positive_samples} samples created...")
