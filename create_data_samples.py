@@ -2,6 +2,7 @@
 #   Lucas Butler
 
 import tensorflow as tf
+from collections import Counter
 import wave
 import numpy as np
 import pandas as pd
@@ -111,47 +112,42 @@ def stratified_split(dataset: tf.data.Dataset, test_size=0.2, val_size=0.1):
 
 targets = [
     {
-        "folder": "/home/lucas/Desktop/ELP-CNN-Spectrogram/raw_audio_positive_samples",
+        "folder": "/home/lucas/Desktop/ELP-CNN-Spectrogram/elephant_raw_audio",
         "label": 1,
     },
     {
-        "folder": "/home/lucas/Desktop/ELP-CNN-Spectrogram/raw_audio_positive_samples",
+        "folder": "/home/lucas/Desktop/ELP-CNN-Spectrogram/non_elephant_raw_audio",
         "label": 0,
     }
 ]
 
-all_datasets = [load_dataset(target['folder']) for target in targets]
-full_dataset = all_datasets[0].concatenate(all_datasets[1])  # Merge datasets
+# Open all of the wav files and compute the mean and std, then close them
+for target in targets:
+    target['dataset'] = load_dataset(target['folder'])
+
+combined_dataset = targets[0]['dataset']
+for target in targets[1:]:
+    combined_dataset = combined_dataset.concatenate(target['dataset'])
 
 print("Calculating global statistics...")
-global_mean, global_std = compute_statistics(full_dataset)
+global_mean, global_std = compute_statistics(combined_dataset)
 
-del full_dataset
-
-raw_datasets = []
+del combined_dataset
 
 # Read all of the wav files and process them into TFExamples, then export all the examples into a TFRecords file
 for target in targets:
-
-    print("loading")
-    dataset = load_dataset(target['folder'])
-
     print("Normalizing")
-    dataset = normalize_dataset(dataset, global_mean, global_std)
-
-    dataset = add_label_to_sample(dataset, target['label'])
-
-    raw_datasets.append(dataset)
-
-# Join the labeled datasets together
-combined_dataset = raw_datasets[0]
-for dataset in raw_datasets[1:]:
-    combined_dataset = combined_dataset.concatenate(dataset)
-
-combined_dataset = combined_dataset.shuffle(10000, reshuffle_each_iteration=False)
+    target['dataset'] = normalize_dataset(target['dataset'], global_mean, global_std)
+    target['dataset'] = add_label_to_sample(target['dataset'], target['label'])
 
 ####### Create the Train, Test, Validate split
+combined_dataset = targets[0]['dataset']
+for target in targets[1:]:
+    combined_dataset = combined_dataset.concatenate(target['dataset'])
+
+combined_dataset = combined_dataset.shuffle(10000, reshuffle_each_iteration=False)
 train, validate, test = stratified_split(combined_dataset)
+del combined_dataset
 
 sets = [
     (train, 'train'), 

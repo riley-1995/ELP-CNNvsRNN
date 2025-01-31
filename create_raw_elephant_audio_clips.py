@@ -3,7 +3,6 @@ import pandas as pd
 import wave
 import numpy as np
 from scipy.signal import resample
-import random
 
 # piush
 def down_sample(audio, input_sr, output_sr):
@@ -58,17 +57,21 @@ def save_audio_to_wav(filename, audio_data, sample_rate, num_channels=1, sample_
 
         # Write the audio data to the file
         wav_file.writeframes(audio_data.tobytes())
+        
 
 # Open the meta data
-data_folder = "/home/lucas/Desktop/ELP-sounds-folder"
-meta_files = ["nn_ele_hb_00-24hr_TrainingSet.txt", "NN_Random_Sample_Hand_ele.txt"]
+data_folder = "/home/lucas/Desktop/ELP-sounds-folder/elephant_signals"
+meta_files = ["nn_ele_hb_00-24hr_TrainingSet.txt"] #, "NN_Random_Sample_Hand_ele.txt"]
+
+# Output folders
+positive_samples_folder = 'elephant_raw_audio'
 
 total_positive_samples = 0
-total_negative_samples = 0
 
-sample_length = 10 # seconds
+sample_length = 5 # seconds
 target_sr = 4000 # hz
 
+# Create the Elephant Clips
 for meta_file in meta_files:
     print(f"Opening {meta_file}")
     data = pd.read_csv(os.path.join(data_folder, meta_file), delimiter='\t')
@@ -85,17 +88,9 @@ for meta_file in meta_files:
     except:
         pass
 
-    # Output folders
-    positive_samples_folder = 'raw_audio_positive_samples'
-    negative_samples_folder = 'raw_audio_negative_samples'
 
     if not os.path.exists(positive_samples_folder) or not os.path.isdir(positive_samples_folder):
         os.mkdir(positive_samples_folder)
-
-    if not os.path.exists(negative_samples_folder) or not os.path.isdir(negative_samples_folder):
-        os.mkdir(negative_samples_folder)
-    
-
 
     for file in set(data['Begin File']):
         target_file = os.path.join(data_folder, file)
@@ -112,7 +107,6 @@ for meta_file in meta_files:
                 params, audio_clip = read_wav_frames(target_file, clip['File Offset (s)'], sample_length)
                 sampling_rate = params.framerate
 
-
                 # Process
                 audio_clip = np.asarray(audio_clip, dtype=np.int16)
                 audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
@@ -124,40 +118,7 @@ for meta_file in meta_files:
                 else:
                     print("Removing audio clip: insufficient length.")
 
-            #print(f"{positive_sample_counter} collected from {target_file}.")
-            negative_samples = 0
-
-            clip_start_times=clips['File Offset (s)']
-            clip_end_times=(clips['File Offset (s)'] + sample_length).astype(int)
-
-            total_time = params.nframes / params.framerate
-            # Create samples of no elephant rumble
-            while negative_samples < positive_sample_counter:
-                
-                negative_sample_begin_time = max(0, random.randint(0, int(total_time)) - sample_length - 1)# subtract the length of the sample so the clip doesn't go off the file
-                negative_sample_end_time = negative_sample_begin_time + sample_length
-
-                overlap = np.any(
-                    (clip_start_times <= negative_sample_begin_time) & (negative_sample_begin_time <= clip_end_times) |
-                    (clip_start_times <= negative_sample_end_time) & (negative_sample_end_time <= clip_end_times)
-                )
-
-                if not overlap:
-                
-                    params, audio_clip = read_wav_frames(target_file, negative_sample_begin_time, sample_length)
-                    sampling_rate = params.framerate
-
-                    # Process
-                    audio_clip = np.asarray(audio_clip, dtype=np.int16)
-                    audio_clip = down_sample(audio_clip, sampling_rate, target_sr)
-
-                    if len(audio_clip) == (sample_length * target_sr):
-                        negative_samples += 1
-                        total_negative_samples += 1
-                        save_audio_to_wav(os.path.join(negative_samples_folder, f'negative_sample_{total_negative_samples}.wav'), audio_clip, target_sr, 1, 2)
-                    else:
-                        print("Removing audio clip: insufficient length.")
-                        
         else:
             print(f"Target file {target_file} does not exist...")
     print(f"{total_positive_samples} samples created...")
+

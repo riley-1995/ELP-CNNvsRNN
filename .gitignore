@@ -5,7 +5,7 @@ data/
 stft_records/
 model.keras
 *.png
-raw_audio_positive_samples/
-raw_audio_negative_samples/
+elephant_raw_audio/
+non_elephant_raw_audio/
 spectrogram_tfrecords/
 audio_tfrecords/
