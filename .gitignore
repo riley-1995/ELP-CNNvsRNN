@@ -9,3 +9,5 @@ elephant_raw_audio/
 non_elephant_raw_audio/
 spectrogram_tfrecords/
 audio_tfrecords/
+audio_tfrecords.zip
+Tests/

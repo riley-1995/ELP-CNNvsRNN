@@ -4,11 +4,11 @@ import os
 class Configuration(object):
 
 	# Data related
-	DATASET_FOLDER = 'stft_records'
+	DATASET_FOLDER = 'spectrogram_tfrecords'
 
-	TRAIN_FILE = 'train.tfrecord'
-	VALIDATE_FILE = 'validate.tfrecord'
-	TEST_FILE = 'test.tfrecord'
+	TRAIN_FILE = 'spectrogram_audio_train.tfrecord'
+	VALIDATE_FILE = 'spectrogram_audio_validate.tfrecord'
+	TEST_FILE = 'spectrogram_audio_test.tfrecord'
 
 	CROSS_VALIDATE = False
 	K_FOLDS=5
@@ -16,17 +16,12 @@ class Configuration(object):
 
 	NUM_CLASSES = 1
 
-	# Train/Validate/Text Split
-	TRAIN_PERCENTAGE = 0.70
-	TEST_PERCENTAGE = 0.15
-	VALIDATE_PERCENTAGE = 0.15
-
 	# Training hyperparameters
 	LEARNING_RATE = 1e-4
 	LEARNING_RATE_DECAY = 0.98
 	LEARNING_RATE_DECAY_STEPS = 500
 	MOMENTUM = 0.9
-	BATCH_SIZE = 128
+	BATCH_SIZE = 16
 	EPOCHS = 50
 
 	# Display steps

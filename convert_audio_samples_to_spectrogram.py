@@ -43,7 +43,7 @@ def load_tfrecords(file_pattern):
     
     return dataset
 
-def stft_hann_window(audio, frame_length, frame_step):
+def stft_hann_window(audio, frame_length, frame_step, bins_to_grab):
     stft = tf.signal.stft(
         audio,
         frame_length=frame_length,
@@ -51,10 +51,22 @@ def stft_hann_window(audio, frame_length, frame_step):
         window_fn=tf.signal.hann_window
     )
 
-    return tf.math.log(tf.abs(stft) + 1e-10)
+    # Grab up to 512 hz, make all the values real, add a third axis
+    stft = stft[:, 2:bins_to_grab]
+    stft = tf.math.log(tf.abs(stft) + 1e-10)
+    stft = tf.expand_dims(stft, axis=-1)
 
-def apply_stft(dataset, frame_length, frame_step):
-    return dataset.map(lambda audio, label: (stft_hann_window(audio, frame_length, frame_step), label), 
+    return stft
+
+def median_filter(spectrogram):
+    from scipy.ndimage import median_filter
+    return median_filter(spectrogram, size=(3,6))
+
+def apply_stft(dataset, frame_length, frame_step, sample_rate, max_frequency):
+    freq_resolution = sample_rate / frame_length
+    tf.print(freq_resolution)
+    bins_to_grab = int(max_frequency / freq_resolution)
+    return dataset.map(lambda audio, label: (stft_hann_window(audio, frame_length, frame_step, bins_to_grab), label), 
                        num_parallel_calls=tf.data.AUTOTUNE)
 
 # Load the audio tfrecords
@@ -75,11 +87,13 @@ spectrogram_dataset = "spectrogram_tfrecords"
 if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
     os.mkdir(spectrogram_dataset)
 
-frame_length = 2048
-frame_step = 128
+frame_length = 4000
+frame_step = 256
+sample_rate = 4000
+max_frequency = 128
 
 for set in datasets:
-    dataset = apply_stft(set[0], frame_length, frame_step)
+    dataset = apply_stft(set[0], frame_length, frame_step, sample_rate, max_frequency)
 
     write_tfrecords(dataset, os.path.join(spectrogram_dataset, f"spectrogram_{set[1]}"))
 

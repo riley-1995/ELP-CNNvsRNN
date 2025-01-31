@@ -7,6 +7,10 @@ import gc
 import itertools
 
 from alexnet import AlexNet
+from cnn_small import small_cnn
+
+model = small_cnn
+
 import tensorflow as tf
 
 import sys
@@ -19,7 +23,7 @@ from config import Configuration
 tf.random.set_seed(1)	# For deterministic ops
 
 # Get the list of GPUs
-# gpus = tf.config.list_physical_devices('GPU')
+gpus = tf.config.list_physical_devices('GPU')
 
 def get_tfrecord_length(dataset):
 	count = 0
@@ -27,40 +31,40 @@ def get_tfrecord_length(dataset):
 		count += 1	
 	return count
 
-# if gpus:
-#     try:
-#         # Set memory growth to True for each GPU
-#         for gpu in gpus:
-#             tf.config.experimental.set_memory_growth(gpu, True)
-#     except RuntimeError as e:
-#         print(e)
+if gpus:
+    try:
+        # Set memory growth to True for each GPU
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
 
 def read_tfrecords(file_name, buffer_size=1000):
-        '''
-        Input:
-            file_name:  File name to read records from.
-        Output:
-            dataset:    TFRecordDataset.
-        '''
-        
-        features = {
-            'sample': tf.io.FixedLenFeature([], tf.string),  
-            'label': tf.io.FixedLenFeature([], tf.string)
-        }
-        
-        def _parse_function(example_proto):
-            """Parse a serialized Example."""
-            parsed = tf.io.parse_single_example(example_proto, features)
-            # Deserialize tensors
-            sample = tf.io.parse_tensor(parsed['sample'], out_type=tf.float32)
-            label = tf.io.parse_tensor(parsed['label'], out_type=tf.int32)
+	'''
+	Input:
+		file_name:  File name to read records from.
+	Output:
+		dataset:    TFRecordDataset.
+	'''
 
-            return sample, label
-        
-        data = tf.data.TFRecordDataset(file_name, buffer_size=buffer_size)
-        dataset = data.map(_parse_function)
+	feature_description = {
+		'sample': tf.io.FixedLenFeature([], tf.string),
+		'label': tf.io.FixedLenFeature([], tf.int64)
+	}
 
-        return dataset
+	def _parse_function(example_proto):
+		"""Parse a serialized Example."""
+		parsed = tf.io.parse_single_example(example_proto, feature_description)
+		# Deserialize tensors
+		sample = tf.io.parse_tensor(parsed['sample'], out_type=tf.float32)
+		label = parsed['label']
+
+		return sample, label
+
+	data = tf.data.TFRecordDataset(file_name, buffer_size=buffer_size)
+	dataset = data.map(_parse_function)
+
+	return dataset
 
 if __name__ == '__main__':
 	i = 0
@@ -104,7 +108,7 @@ if __name__ == '__main__':
 
 			for fold_idx in range(k_folds):
 				# Create a fresh model for each fold
-				net = AlexNet(cfg=cfg, training=True)
+				net = model(cfg=cfg, training=True)
 				trainer = Trainer(cfg=cfg, net=net)
 
 				# Create validation dataset for the current fold
@@ -146,7 +150,7 @@ if __name__ == '__main__':
 		# Best parameter assignments, only using batchsize for now
 		batch_size = best_hyperparameters[0]
 	else:
-		batch_size = 1
+		batch_size = cfg.BATCH_SIZE
 
 	validate = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.VALIDATE_FILE), buffer_size=10000)
 	tf.print(f"Number of validate records: {get_tfrecord_length(validate)}")
@@ -161,7 +165,7 @@ if __name__ == '__main__':
 		tf.summary.text("Batch Size", str(batch_size), step=0)
 
 	# Load the model and trainer
-	net = AlexNet(cfg=cfg, training=True)
+	net = model(cfg=cfg, training=True)
 	trainer = Trainer(cfg=cfg, net=net)
 
 	# Call train function on trainer class
