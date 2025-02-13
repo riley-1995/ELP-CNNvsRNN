@@ -1,4 +1,5 @@
 import os
+import numpy as np
 import tensorflow as tf
 
 def write_tfrecords(dataset: tf.data.Dataset, file_prefix):
@@ -69,31 +70,51 @@ def apply_stft(dataset, frame_length, frame_step, sample_rate, max_frequency):
     return dataset.map(lambda audio, label: (stft_hann_window(audio, frame_length, frame_step, bins_to_grab), label), 
                        num_parallel_calls=tf.data.AUTOTUNE)
 
-# Load the audio tfrecords
-files = []
-audio_files_directory = "audio_tfrecords"
-for file in os.listdir(audio_files_directory):
-    if file.endswith(".tfrecord"):
-        files.append(
-            (
-                os.path.join(audio_files_directory, file),
-                os.path.basename(file.replace(".tfrecord", ""))
-            ))
+def compute_global_stats(datasets):
+    all_spectrograms = []
+    for dataset, _ in datasets:
+        for spectrogram, _ in dataset:
+            all_spectrograms.append(spectrogram.numpy())
+    all_spectrograms = np.concatenate(all_spectrograms, axis=0)
+    global_mean = np.mean(all_spectrograms)
+    global_std = np.std(all_spectrograms)
+    return global_mean, global_std
 
-datasets = [(load_tfrecords(file[0]), file[1]) for file in files]
+def normalize_spectrogram(spectrogram, global_mean, global_std):
+    return (spectrogram - global_mean) / global_std
 
-# Create spectrograms and write
-spectrogram_dataset = "spectrogram_tfrecords"
-if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
-    os.mkdir(spectrogram_dataset)
 
-frame_length = 4000
-frame_step = 256
-sample_rate = 4000
-max_frequency = 128
+if __name__ == "__main__":
+    # Create spectrograms and write
+    spectrogram_dataset = "../spectrogram_tfrecords_cherrypick"
+    if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
+        os.mkdir(spectrogram_dataset)
+        
+    # Load the audio tfrecords
+    files = []
+    audio_files_directory = "../audio_tfrecords_cherrypick"
+    for file in os.listdir(audio_files_directory):
+        if file.endswith(".tfrecord"):
+            files.append(
+                (
+                    os.path.join(audio_files_directory, file),
+                    os.path.basename(file.replace(".tfrecord", ""))
+                ))
 
-for set in datasets:
-    dataset = apply_stft(set[0], frame_length, frame_step, sample_rate, max_frequency)
+    datasets = [(load_tfrecords(file[0]), file[1]) for file in files]
 
-    write_tfrecords(dataset, os.path.join(spectrogram_dataset, f"spectrogram_{set[1]}"))
+    frame_length = 2000
+    frame_step = 32
+    sample_rate = 4000
+    max_frequency = 200
+
+    for i, (dataset, name) in enumerate(datasets):
+        datasets[i] = (apply_stft(dataset, frame_length, frame_step, sample_rate, max_frequency), name)
+
+    global_mean, global_std = compute_global_stats(datasets)
+
+    for dataset, file_name in datasets:
+        normalized_dataset = dataset.map(lambda spectrogram, label: (normalize_spectrogram(spectrogram, global_mean, global_std), label), num_parallel_calls=tf.data.AUTOTUNE)
+        
+        write_tfrecords(normalized_dataset, os.path.join(spectrogram_dataset, f"spectrogram_{file_name}"))
 

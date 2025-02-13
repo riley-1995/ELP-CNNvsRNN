@@ -1,13 +1,11 @@
 **/__pycache__
 logs/
 ckpt/
-data/
-stft_records/
+results/
 model.keras
 *.png
-elephant_raw_audio/
-non_elephant_raw_audio/
-spectrogram_tfrecords/
+audio_tfrecords_cherrypick/
 audio_tfrecords/
 audio_tfrecords.zip
 Tests/
+spectrogram_tfrecords_cherrypick

@@ -3,7 +3,7 @@ import tensorflow as tf
 # Train class for training the model
 class Trainer(object):
 
-	def __init__(self, cfg, net, resume=False):
+	def __init__(self, cfg, net):
 		# Configuration and Model
 		self.cfg = cfg
 		self.net = net
@@ -20,18 +20,6 @@ class Trainer(object):
 		self.loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 		self.global_step = tf.Variable(0, name='global_step', dtype=tf.int64, trainable=False)
 
-	def predict(self, x):
-		"""
-		Predicts the class labels using softmax probabilities.
-		Input:
-			x: tf.Tensor
-		Output:
-			predictions: tf.Tensor in one-hot encoded format
-		"""
-		probabilities = self.net(x)  # Output shape: (batch_size, num_classes)
-		predictions = tf.cast(probabilities > 0.5, dtype=tf.int32)
-		return predictions
-	
 	def compute_loss(self, x, y, training):
 		'''
 		Computes the loss between actual and predicted labels
@@ -46,7 +34,7 @@ class Trainer(object):
 		return loss_value
 
 	# Accuracy Calulations
-	def compute_accuracy(self, x, y):
+	def compute_accuracy(self, x, y, threshold):
 		'''
 		Calculates the accuracy given a sample and a label pair.
 		input:
@@ -57,7 +45,7 @@ class Trainer(object):
 		'''
 
 		probabilities = self.net(x, training=False)  # Output shape: (batch_size, 1)
-		predictions = tf.cast(probabilities > 0.5, dtype=tf.int32)
+		predictions = tf.cast(probabilities > threshold, dtype=tf.int32)
 		correct_predictions = tf.equal(predictions, tf.cast(y, tf.int32))
 		accuracy_value = tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
 		return accuracy_value
@@ -74,12 +62,15 @@ class Trainer(object):
 		total_loss = 0.0
 		total_accuracy = 0.0
 		batches = 0
-		for images, labels in dataset:
-			loss = self.compute_loss(images, labels, training=False)
-			accuracy = self.compute_accuracy(images, labels).numpy()
+		for samples, labels in dataset:
+			predictions = self.net(samples, training=False)
+			loss = self.loss_fn(predictions, labels)
 			total_loss += loss.numpy()
+
+			accuracy = self.compute_accuracy(samples, labels, self.cfg.PROB_THRESHOLD).numpy()
 			total_accuracy += accuracy
 			batches += 1
+			
 		loss = total_loss / batches
 		accuracy = total_accuracy / batches
 		return loss, accuracy
@@ -147,12 +138,13 @@ class Trainer(object):
 
 		for e in range(0, self.cfg.EPOCHS if not max_epochs else max_epochs):
 
-			for step, (sample, labels) in enumerate(trainset.shuffle(buffer_size=1000)):
+			for step, (samples, labels) in enumerate(trainset.shuffle(buffer_size=1000)):
 				self.global_step.assign_add(1)
 				g_step = self.global_step.numpy() + 1
 
 				with tf.GradientTape() as tape:
-					loss = self.compute_loss(sample, labels, training=True)
+					predictions = self.net(samples, training=True)
+					loss = self.loss_fn(labels, predictions)
 					
 				gradients = tape.gradient(loss, self.net.trainable_weights)
 				self.optimizer.apply_gradients(zip(gradients, self.net.trainable_weights))

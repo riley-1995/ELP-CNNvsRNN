@@ -69,11 +69,12 @@ class Tester(object):
 
 		# Iterate through the test dataset
 		start = time.time()
-		for x_batch, y_batch in self.testset:
-			# Ensure output probabilities are in [0, 1]
-			probabilities = tf.sigmoid(self.net(x_batch, training=False))  # Apply sigmoid if needed
-			all_predictions.append(probabilities.numpy().flatten())  # Collect probabilities
-			all_labels.append(y_batch.numpy().flatten())  # Collect true labels
+		for samples, labels in self.testset:
+
+			predictions = self.net(samples, training=False)  # Apply sigmoid if needed
+			all_predictions.append(predictions.numpy().flatten())  # Collect probabilities
+
+			all_labels.append(labels.numpy().flatten())  # Collect true labels
 
 		end = time.time()
 		tf.print(f"\n\nProcessed {len(all_labels) * len(all_labels[0])} samples in {round(end - start, 2)} seconds.")
@@ -83,8 +84,8 @@ class Tester(object):
 		all_labels = np.concatenate(all_labels)  # Concatenate batches
 
 		# Validate data
-		assert np.all((all_predictions >= 0) & (all_predictions <= 1)), "Predictions out of range [0, 1]"
-		assert np.all((all_labels == 0) | (all_labels == 1)), "Labels must be binary (0 or 1)"
+		assert np.all((all_predictions >= 0) & (all_predictions <= 1))
+		assert np.all((all_labels == 0) | (all_labels == 1))
 
 		return all_predictions, all_labels
 
@@ -186,6 +187,6 @@ if __name__ == '__main__':
 	# Call test function on tester object
 	predictions, labels = tester.test()
 
-			# Generate ROC Curve and AUC
+	# Generate ROC Curve and AUC
 	tester.find_best_threshold_and_produce_metrics(labels, predictions)
 

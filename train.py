@@ -9,7 +9,8 @@ import itertools
 from alexnet import AlexNet
 from cnn_small import small_cnn
 
-model = small_cnn
+#model = small_cnn
+model = AlexNet
 
 import tensorflow as tf
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
 
 	cross_validate = cfg.CROSS_VALIDATE
 	if cross_validate:
-		batch_sizes = [32, 64, 128]
+		batch_sizes = [8, 16, 32, 64]
 
 		# Enumerate all possible options of hyperparameters
 		hyperparameters = list(itertools.product(batch_sizes))
@@ -124,7 +125,7 @@ if __name__ == '__main__':
 					trainset=train_dataset.batch(parameters[0]), 
 					valset=val_dataset.batch(parameters[0]), 
 					cross_validate=True, 
-					epochs=cfg.MAX_CV_EPOCHS
+					max_epochs=cfg.MAX_CV_EPOCHS
 					)
 				
 				tf.print(f'Cross validation fold {fold_idx} loss: {fold_val_loss}')

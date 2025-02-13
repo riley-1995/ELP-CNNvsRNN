@@ -4,17 +4,19 @@ import os
 class Configuration(object):
 
 	# Data related
-	DATASET_FOLDER = 'spectrogram_tfrecords'
+	DATASET_FOLDER = 'spectrogram_tfrecords_cherrypick'
 
-	TRAIN_FILE = 'spectrogram_audio_train.tfrecord'
-	VALIDATE_FILE = 'spectrogram_audio_validate.tfrecord'
-	TEST_FILE = 'spectrogram_audio_test.tfrecord'
+	TRAIN_FILE = 'spectrogram_train_cherrypick.tfrecord'
+	VALIDATE_FILE = 'spectrogram_validate_cherrypick.tfrecord'
+	TEST_FILE = 'spectrogram_test_cherrypick.tfrecord'
 
 	CROSS_VALIDATE = False
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5
 
+	# Prediction
 	NUM_CLASSES = 1
+	PROB_THRESHOLD = 0.5
 
 	# Training hyperparameters
 	LEARNING_RATE = 1e-4
@@ -29,13 +31,14 @@ class Configuration(object):
 	VALIDATION_STEP = 50
 	SAVE_STEP = 5000
 
-	# Paths for checkpoint
-	SUMMARY_PATH = 'summary'
-	LOG_DIR = 'logs'
-	MODEL_FILE = 'model.keras'	
+	# Paths for Output
+	SUMMARY_PATH = 'results/summary'
+	LOG_DIR = 'results/logs'
+	MODEL_FILE = 'results/model.keras'
+	TESTING_IMAGES = 'results'
 
 	# Early Stopping Config
-	PATIENCE = 7
+	PATIENCE = 50
 	MIN_DELTA = 0.0005
 	RESTORE_BEST_WEIGHTS = False
 
