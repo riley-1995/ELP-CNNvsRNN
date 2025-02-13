@@ -6,11 +6,12 @@ import datetime
 import gc
 import itertools
 
+from utils import read_tfrecords, get_tfrecord_length
 from alexnet import AlexNet
-from cnn_small import small_cnn
+from cnn_small import SmallCNN
 
 #model = small_cnn
-model = AlexNet
+model = SmallCNN
 
 import tensorflow as tf
 
@@ -26,12 +27,6 @@ tf.random.set_seed(1)	# For deterministic ops
 # Get the list of GPUs
 gpus = tf.config.list_physical_devices('GPU')
 
-def get_tfrecord_length(dataset):
-	count = 0
-	for d in dataset:
-		count += 1	
-	return count
-
 if gpus:
     try:
         # Set memory growth to True for each GPU
@@ -39,33 +34,6 @@ if gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
     except RuntimeError as e:
         print(e)
-
-def read_tfrecords(file_name, buffer_size=1000):
-	'''
-	Input:
-		file_name:  File name to read records from.
-	Output:
-		dataset:    TFRecordDataset.
-	'''
-
-	feature_description = {
-		'sample': tf.io.FixedLenFeature([], tf.string),
-		'label': tf.io.FixedLenFeature([], tf.int64)
-	}
-
-	def _parse_function(example_proto):
-		"""Parse a serialized Example."""
-		parsed = tf.io.parse_single_example(example_proto, feature_description)
-		# Deserialize tensors
-		sample = tf.io.parse_tensor(parsed['sample'], out_type=tf.float32)
-		label = parsed['label']
-
-		return sample, label
-
-	data = tf.data.TFRecordDataset(file_name, buffer_size=buffer_size)
-	dataset = data.map(_parse_function)
-
-	return dataset
 
 if __name__ == '__main__':
 	i = 0

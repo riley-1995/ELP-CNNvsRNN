@@ -26,6 +26,7 @@ class Trainer(object):
 		input:
 			x: tf.Tensor
 			y: tf.Tensor
+			training: bool	-	controls dropout layer in the model
 		output:
 			loss_value: float
 		'''

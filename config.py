@@ -23,7 +23,7 @@ class Configuration(object):
 	LEARNING_RATE_DECAY = 0.98
 	LEARNING_RATE_DECAY_STEPS = 500
 	MOMENTUM = 0.9
-	BATCH_SIZE = 16
+	BATCH_SIZE = 64
 	EPOCHS = 50
 
 	# Display steps

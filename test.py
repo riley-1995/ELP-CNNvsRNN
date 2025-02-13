@@ -8,49 +8,18 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 import time
 import numpy as np
 import tensorflow as tf
-from config import Configuration
-from alexnet import AlexNet
-from cnn_small import small_cnn
-
-model_ = small_cnn
-
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 
+from utils import read_tfrecords, get_tfrecord_length
+from config import Configuration
+from alexnet import AlexNet
+from cnn_small import SmallCNN
+
+model_ = SmallCNN
+
+
 tf.random.set_seed(1)
-
-def get_tfrecord_length(dataset):
-	count = 0
-	for d in dataset:
-		count += 1	
-	return count
-
-def read_tfrecords(file_name, buffer_size=1000):
-	'''
-	Input:
-		file_name:  File name to read records from.
-	Output:
-		dataset:    TFRecordDataset.
-	'''
-
-	feature_description = {
-		'sample': tf.io.FixedLenFeature([], tf.string),
-		'label': tf.io.FixedLenFeature([], tf.int64)
-	}
-
-	def _parse_function(example_proto):
-		"""Parse a serialized Example."""
-		parsed = tf.io.parse_single_example(example_proto, feature_description)
-		# Deserialize tensors
-		sample = tf.io.parse_tensor(parsed['sample'], out_type=tf.float32)
-		label = parsed['label']
-
-		return sample, label
-
-	data = tf.data.TFRecordDataset(file_name, buffer_size=buffer_size)
-	dataset = data.map(_parse_function)
-
-	return dataset
 
 # Class for Tester
 class Tester(object):
@@ -118,7 +87,7 @@ class Tester(object):
 		plt.ylabel('True Positive Rate')
 		plt.legend()
 		plt.grid()
-		plt.savefig('ROC_curve.png')
+		plt.savefig(os.path.join(self.cfg.TESTING_IMAGES, 'ROC_curve.png'))
 		
 		# Calculate Youden's Index: sensitivity (TPR) - false positive rate (FPR)
 		youden_index = tpr + (1 - fpr) - 1
@@ -136,7 +105,7 @@ class Tester(object):
 		disp.plot(cmap=plt.cm.Blues)
 		plt.title(f'Confusion Matrix at Best Threshold (Abnormal) {best_threshold:.2f}')
 		plt.grid(False)
-		plt.savefig('Confusion_matrix.png')
+		plt.savefig(os.path.join(self.cfg.TESTING_IMAGES, 'Confusion_matrix.png'))
 
 		# Calculate Metrics
 		accuracy = accuracy_score(actual, binary_predictions)
@@ -153,18 +122,6 @@ class Tester(object):
 	
 if __name__ == '__main__':
 	i = 0
-
-	# Path for test results
-	if not os.path.exists("Tests"):
-		os.makedirs('Tests')
-
-	while os.path.exists("Tests/Test%s.txt" % i):
-		i += 1
-
-	LOG_PATH = "Tests/Test%s.txt" % i
-	def print(msg):
-		with open(LOG_PATH,'a') as f:
-			f.write(f'{time.ctime()}: {msg}\n')
 
 	cfg = Configuration()
 
