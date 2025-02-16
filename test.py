@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score, confusion_matrix, accuracy_score, ConfusionMatrixDisplay
 
 from utils import read_tfrecords, get_tfrecord_length
-from config import Configuration
+from config import GlobalConfiguration
 from alexnet import AlexNet
 from cnn_small import SmallCNN
 
@@ -123,7 +123,7 @@ class Tester(object):
 if __name__ == '__main__':
 	i = 0
 
-	cfg = Configuration()
+	cfg = GlobalConfiguration()
 
 	testset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TEST_FILE), buffer_size=64000)
 	testset = testset.batch(128)

@@ -1,3 +1,4 @@
+import tensorflow as tf 
 
 def format_time(time):
 	m, s = divmod(time, 60)
