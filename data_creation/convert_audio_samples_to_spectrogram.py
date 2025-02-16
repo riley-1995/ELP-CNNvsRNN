@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import tensorflow as tf
+import argparse
 
 def write_tfrecords(dataset: tf.data.Dataset, file_prefix):
 
@@ -83,16 +84,23 @@ def compute_global_stats(datasets):
 def normalize_spectrogram(spectrogram, global_mean, global_std):
     return (spectrogram - global_mean) / global_std
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
-if __name__ == "__main__":
+def main():
+    parser = argparse.ArgumentParser(description="Generate spectrograms from TFRecords.")
+    parser.add_argument("--audio_tfrecords_directory", type=str, required=True, help="Path to the directory containing audio TFRecords.")
+    parser.add_argument("--output_folder", type=str, required=True, help="Path to save the spectrogram dataset.")
+    args = parser.parse_args()
+
     # Create spectrograms and write
-    spectrogram_dataset = "../spectrogram_tfrecords_cherrypick"
+    audio_files_directory = args.audio_tfrecords_directory
+    spectrogram_dataset = args.output_folder
+
     if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
         os.mkdir(spectrogram_dataset)
         
     # Load the audio tfrecords
     files = []
-    audio_files_directory = "../audio_tfrecords_cherrypick"
     for file in os.listdir(audio_files_directory):
         if file.endswith(".tfrecord"):
             files.append(
@@ -118,3 +126,5 @@ if __name__ == "__main__":
         
         write_tfrecords(normalized_dataset, os.path.join(spectrogram_dataset, f"spectrogram_{file_name}"))
 
+if __name__ == "__main__":
+    main()
