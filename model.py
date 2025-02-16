@@ -12,30 +12,35 @@ class Model(tf.keras.Model):
 
 		# Convolutional layers 1 to 5
 		conv_init = tf.compat.v1.glorot_normal_initializer()
+
+		if self.cfg['activation_function'] == 'ReLU':
+			self.activation_function = tf.nn.relu
+		elif self.cfg['activation_function'] == 'LeakyReLU':
+			self.activation_function = tf.nn.leaky_relu(alpha=0.2)
 		
 		# Adaptive height, width, and channels 
 		self.conv1 = tf.keras.Sequential([
 			tf.keras.layers.Conv2D(64, 3, 3, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(tf.nn.relu)
+			tf.keras.layers.Activation(self.activation_function)
 		])
 		self.pool1 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
 		self.conv2 = tf.keras.Sequential([
 			tf.keras.layers.Conv2D(128, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(tf.nn.relu)
+			tf.keras.layers.Activation(self.activation_function)
 		])
 		self.pool2 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
 		self.conv3 = tf.keras.Sequential([
 			tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(tf.nn.relu)
+			tf.keras.layers.Activation(self.activation_function)
 		])
 		
 		self.pool3 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
 		self.conv4 = tf.keras.Sequential([
 			tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(tf.nn.relu)
+			tf.keras.layers.Activation(self.activation_function)
 		])
 		
 		self.pool4 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
@@ -43,13 +48,13 @@ class Model(tf.keras.Model):
 		# Fully connected layers
 		fc_init = tf.compat.v1.glorot_normal_initializer()
 
-		self.fc1 = tf.keras.layers.Dense(256, activation=tf.nn.relu, kernel_initializer=fc_init)
+		self.fc1 = tf.keras.layers.Dense(256, activation=self.activation_function, kernel_initializer=fc_init)
 		self.drop1 = tf.keras.layers.Dropout(self.cfg.DROPOUT)
 
-		self.fc2 = tf.keras.layers.Dense(50, activation=tf.nn.relu, kernel_initializer=fc_init)
+		self.fc2 = tf.keras.layers.Dense(50, activation=self.activation_function, kernel_initializer=fc_init)
 
 		# Sigmoid for multilabel classification
-		self.out = tf.keras.layers.Dense(self.cfg.NUM_CLASSES, activation='sigmoid', kernel_initializer=fc_init)
+		self.out = tf.keras.layers.Dense(1, activation='sigmoid', kernel_initializer=fc_init)
 
 
 	def call(self, x):
