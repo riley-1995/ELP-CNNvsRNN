@@ -4,27 +4,18 @@ import os
 class GlobalConfiguration(object):
 
 	# Data related
-	DATASET_FOLDER = '/tmp/611-data/spectrogram_tfrecords_cherrypick'
+	DATASET_FOLDER = './spectrogram_records'
 
 	TRAIN_FILE = 'spectrogram_train_cherrypick.tfrecord'
 	VALIDATE_FILE = 'spectrogram_validate_cherrypick.tfrecord'
 	TEST_FILE = 'spectrogram_test_cherrypick.tfrecord'
 
-	CROSS_VALIDATE = False
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5
 
 	# Prediction
 	NUM_CLASSES = 1
 	PROB_THRESHOLD = 0.5
-
-	# Training hyperparameters
-	LEARNING_RATE = 1e-4
-	LEARNING_RATE_DECAY = 0.98
-	LEARNING_RATE_DECAY_STEPS = 500
-	MOMENTUM = 0.9
-	BATCH_SIZE = 64
-	EPOCHS = 50
 
 	# Display steps
 	TRAIN_STEP = 10
@@ -38,9 +29,6 @@ class GlobalConfiguration(object):
 	TESTING_IMAGES = 'results'
 
 	# Early Stopping Config
-	PATIENCE = 50
+	PATIENCE = 20
 	MIN_DELTA = 0.0005
 
-	# Net architecture hyperparamaters
-	LAMBDA = 5e-4 #for weight decay
-	DROPOUT = 0.5
