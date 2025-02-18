@@ -142,7 +142,7 @@ def trainable(config):
     avg_acc = sum(fold_accuracy_results)/len(fold_accuracy_results)
 
     tf.print(f"Avg. Val. Loss: {avg_loss:.2f} Avg. Val. Acc: {avg_acc:.2f}")
-    tune.report({'avg_loss': avg_loss, 'avg_acc': avg_acc})
+    tune.report({'config': config, 'avg_loss': avg_loss, 'avg_acc': avg_acc})
 
 
 if __name__ == "__main__":
@@ -155,17 +155,3 @@ if __name__ == "__main__":
         param_space=search_space,
     )
     tuner.fit()
-
-#     config = {  
-#     "learning_rate": 0.001,
-#     "learning_rate_decay_steps": 500,
-#     "learning_rate_decay": 0.98,
-#     "momentum": 0.9,
-#     "batch_size": 32,
-#     "epochs": 50,
-#     "activation_function": "ReLU", #``, "LeakyReLU"]),
-#     "dropout_rate": 0.2,
-#     "optimizer": "adam",
-#     "model": Model
-# }
-#     trainable(config)
