@@ -3,7 +3,17 @@ import tensorflow as tf
 from utils import read_tfrecords
 import os
 
-from trainer import Trainer
+import tensorflow as tf
+print(tf.config.list_physical_devices('GPU'))
+
+gpus = tf.config.experimental.list_physical_devices('GPU')
+if gpus:
+    try:
+        for gpu in gpus:
+            tf.config.experimental.set_memory_growth(gpu, True)
+    except RuntimeError as e:
+        print(e)
+
 from config import GlobalConfiguration
 
 from ray import tune
@@ -13,13 +23,17 @@ from model import Model
 cfg = GlobalConfiguration()
 
 def k_fold_split(dataset, num_folds, fold_idx):
-    dataset = dataset.enumerate().cache().prefetch(tf.data.AUTOTUNE)
 
-    # Validation dataset: Select elements belonging to the current fold
-    val_dataset = dataset.filter(lambda i, data: i % num_folds == fold_idx).map(lambda i, data: data)
+    dataset_size = sum(1 for _ in dataset)  # Calculate the total number of samples
+    fold_size = dataset_size // num_folds  # Calculate the size of each fold
+    
+    # Create validation dataset for the current fold
+    val_dataset = dataset.skip(fold_idx * fold_size).take(fold_size)
 
-    # Training dataset: Select elements NOT in the current fold
-    train_dataset = dataset.filter(lambda i, data: i % num_folds != fold_idx).map(lambda i, data: data)
+    # Create training dataset by skipping the validation fold and concatenating the rest
+    train_dataset = dataset.take(fold_idx * fold_size).concatenate(
+        dataset.skip((fold_idx + 1) * fold_size)
+    )
 
     return train_dataset, val_dataset
 
@@ -27,7 +41,7 @@ def k_fold_split(dataset, num_folds, fold_idx):
 def train_step(net, optimizer, loss_fn, samples, labels):
     with tf.GradientTape() as tape:
         predictions = net(samples, training=True)
-    loss = loss_fn(labels, predictions)
+        loss = loss_fn(labels, predictions)
     
     gradients = tape.gradient(loss, net.trainable_weights)
     optimizer.apply_gradients(zip(gradients, net.trainable_weights))
@@ -41,7 +55,7 @@ search_space = {
     "momentum": tune.choice([0.9]),
     "batch_size": tune.choice([8, 16, 32, 64]),
     "epochs": tune.choice([50]),
-    "activation_function": tune.choice(["ReLU", "LeakyReLU"]),
+    "activation_function": tune.choice(["ReLU"]), #``, "LeakyReLU"]),
     "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
     "optimizer": tune.choice(["adam", "sgd"]),
     "model": tune.choice([Model])
@@ -49,12 +63,13 @@ search_space = {
 
 def trainable(config):
 
+    print(config)
     training_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TRAIN_FILE), buffer_size=64000)
 
-    # Fold calculation
-    k_folds = cfg.K_FOLDS
-    dataset_size = sum(1 for _ in training_dataset)
-    fold_size = dataset_size // k_folds
+    for sample, label in training_dataset.take(1):
+        shape = [None] + sample.shape
+    tf.print(shape)
+    dataset_size = sum(1 for _ in training_dataset)  # Calculate the total number of samples
 
     # Define learning rate schedule
     lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
@@ -64,33 +79,35 @@ def trainable(config):
         staircase=True 
     )
     
-    # Optimization
-    if config["optimizer"] == "adam":
-        optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
-    elif config["optimizer"] == "sgd":
-        optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule, momentum=config["momentum"])
-
     # Loss Function
     loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
-    
+
     # store results
     fold_loss_results = []
     fold_accuracy_results = []
 
     # Iterate through folds
-    for fold_idx in range(k_folds):
+    for fold_idx in range(cfg.K_FOLDS):
+        tf.print("New fold")
 
         # Create a fresh model for each fold
         net = config['model'](model_config=config, training=True)
+        net.build(shape)
 
+        # Optimization
+        if config["optimizer"] == "adam":
+            optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+        elif config["optimizer"] == "sgd":
+            optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule, momentum=config["momentum"])
+
+        optimizer.build(net.trainable_weights)
         train_dataset, val_dataset = k_fold_split(training_dataset, cfg.K_FOLDS, fold_idx)
 
         # Iterate through epochs
-        for _ in config['epochs']:
+        for _ in range(config['epochs']):
 
             # Training passes
             for step, (samples, labels) in enumerate(train_dataset.batch(config['batch_size']).shuffle(buffer_size=dataset_size)):
-
                 loss = train_step(net, optimizer, loss_fn, samples, labels)
 
         # Validation runs
@@ -115,6 +132,8 @@ def trainable(config):
         validation_loss = total_loss / batches
         validation_accuracy = total_accuracy / batches
 
+        tf.print(f"Validation loss: {validation_loss:.2f} Validation Accuracy: {validation_accuracy:.2f}")
+
         fold_loss_results.append(validation_loss)
         fold_accuracy_results.append(validation_accuracy)
 
@@ -122,15 +141,31 @@ def trainable(config):
     avg_loss = sum(fold_loss_results)/len(fold_loss_results)
     avg_acc = sum(fold_accuracy_results)/len(fold_accuracy_results)
 
-    tune.report(average_validation_loss=avg_loss, average_validation_accuracy=avg_acc)
+    tf.print(f"Avg. Val. Loss: {avg_loss:.2f} Avg. Val. Acc: {avg_acc:.2f}")
+    tune.report({'avg_loss': avg_loss, 'avg_acc': avg_acc})
 
 
 if __name__ == "__main__":
     ray.init(ignore_reinit_error=True)
 
+    resources={"cpu": 4, "gpu": 1}
+
     tuner = tune.Tuner(
-        trainable,
-        param_space=search_space
+        tune.with_resources(trainable, resources),
+        param_space=search_space,
     )
     tuner.fit()
-    
+
+#     config = {  
+#     "learning_rate": 0.001,
+#     "learning_rate_decay_steps": 500,
+#     "learning_rate_decay": 0.98,
+#     "momentum": 0.9,
+#     "batch_size": 32,
+#     "epochs": 50,
+#     "activation_function": "ReLU", #``, "LeakyReLU"]),
+#     "dropout_rate": 0.2,
+#     "optimizer": "adam",
+#     "model": Model
+# }
+#     trainable(config)

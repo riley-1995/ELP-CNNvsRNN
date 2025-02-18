@@ -1,6 +1,5 @@
 import tensorflow as tf
 
-
 # Class for Alexnet model
 class Model(tf.keras.Model):
 
@@ -19,37 +18,27 @@ class Model(tf.keras.Model):
 			self.activation_function = tf.nn.leaky_relu(alpha=0.2)
 		
 		# Adaptive height, width, and channels 
-		self.conv1 = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(64, 3, 3, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(self.activation_function)
-		])
+		self.conv1 = tf.keras.layers.Conv2D(64, 3, 3, 'same', kernel_initializer=conv_init)
+		self.act1 = tf.keras.layers.Activation(self.activation_function)
 		self.pool1 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
-		self.conv2 = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(128, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(self.activation_function)
-		])
+		self.conv2 = tf.keras.layers.Conv2D(128, 3, 1, 'same', kernel_initializer=conv_init)
+		self.act2 = tf.keras.layers.Activation(self.activation_function)
 		self.pool2 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
-		self.conv3 = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(self.activation_function)
-		])
-		
+		self.conv3 = tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init)
+		self.act3 = tf.keras.layers.Activation(self.activation_function)
 		self.pool3 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
-		self.conv4 = tf.keras.Sequential([
-			tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init),
-			tf.keras.layers.Activation(self.activation_function)
-		])
-		
+		self.conv4 = tf.keras.layers.Conv2D(256, 3, 1, 'same', kernel_initializer=conv_init)
+		self.act4 = tf.keras.layers.Activation(self.activation_function)
 		self.pool4 = tf.keras.layers.MaxPooling2D(2, 2, 'VALID')
 
 		# Fully connected layers
 		fc_init = tf.compat.v1.glorot_normal_initializer()
 
 		self.fc1 = tf.keras.layers.Dense(256, activation=self.activation_function, kernel_initializer=fc_init)
-		self.drop1 = tf.keras.layers.Dropout(self.cfg.DROPOUT)
+		self.drop1 = tf.keras.layers.Dropout(self.cfg['dropout_rate'])
 
 		self.fc2 = tf.keras.layers.Dense(50, activation=self.activation_function, kernel_initializer=fc_init)
 
@@ -61,15 +50,19 @@ class Model(tf.keras.Model):
 		# Function that executes the model on call
 
 		output = self.conv1(x)
+		output = self.act1(output)
 		output = self.pool1(output)
 
 		output = self.conv2(output)
+		output = self.act2(output)
 		output = self.pool2(output)
 
-		output = self.conv3(output)
+		output = self.conv3(output)		
+		output = self.act3(output)
 		output = self.pool3(output)
 		
 		output = self.conv4(output)
+		output = self.act4(output)
 		output = self.pool4(output)
 
 		output = tf.keras.layers.Flatten()(output)
