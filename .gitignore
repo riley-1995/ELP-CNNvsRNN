@@ -9,4 +9,7 @@ audio_tfrecords/
 audio_tfrecords.zip
 Tests/
 spectrogram_tfrecords_cherrypick/
+spectrogram_records/
 data/
+core*
+*.exp*

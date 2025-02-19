@@ -1,23 +1,52 @@
 # Environment Setup 
 
+If you are using the SDSC Expanse/ACCESS server, they provide a variety of containers for Tensorflow training. In my case, I needed a container with the Ray Tune package, which was unavailable. A nice work around to is to convert a prexisting container into a Singularity sandbox, run the sandbox container in a shell to add the needed packages, then launch scripts using that sandbow container.
 
-# Data Creation
+First, load the singularity module:
 
-First you need the tfrecords_cherrypicked.zip file. Unzip it.
+```
+module load singularitypro
+```
 
+The, find the container you want to copy and copy it:
+
+```
+singularity sandbox create sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
+```
+
+Once the container has been built into a sandbox directory, load the container in a shell:
+```
+singularity exec --writable sandbox_container/ bash
+```
+
+Now, execute this command to install ray tune, which it using for hyperparameter tuning of the model.
+```
+pip install -U "ray[data,train,tune,serve]"
+```
+
+Once this installation is complete, exit the shell and the contents should be saved:
+```
+exit
+```
+
+Now, we have a container we can use for training.
+
+# Data Setup
+
+Firs you need to locate the 'tfrecords_cherrypicked' folder. This contains the training, testing, and validating audio samples of both elephant rumbles and non-elephant rumble signals. If you are using the SDSC access server, the folder is unzipped and placed in /tmp/elp_data (unless someone moved it).
+
+If the file is zipped than unzip it. 
 ```
 unzip tfrecords_cherrypicked.zip 
 ```
 
-This file contains labeled audio examples of elephant and non elephant signals. We must create spectrogram examples of this data.
-
-Move into folder 'ELP-CNN-Spectrogram/data_creation' and run the following command to create the spectrogram files from the tfrecords_cherrypicked.
+Now, you must convert the audio samples into spectrogram samples. Move into folder 'ELP-CNN-Spectrogram/data_creation' and run the following command to create the spectrogram files from the tfrecords_cherrypicked.
 
 ```
-python convert_audio_samples_to_spectrogram.py --audio_tfrecords_directory /home/lbutler2/tfrecords_cherrypicked --output_folder ../spectrogram_records
+python convert_audio_samples_to_spectrogram.py --audio_tfrecords_directory <path-to>/tfrecords_cherrypicked --output_folder ../spectrogram_records
 ```
 
-Move back one directory into ELP-CNN-Spectrogram. Now, go into config.py and make sure that these two parameters are set properly:
+Once the new files are created, you must make sure that the config.py file is configured to load the data correctly. This means making sure the path points to the correct folder and the file names match. Move into the ELP-CNN-Spectrogram directory, go into config.py and make sure that these parameters are set properly:
 
 ```
 DATASET_FOLDER = './spectrogram_records'
@@ -30,3 +59,22 @@ TEST_FILE = 'spectrogram_test_cherrypick.tfrecord'
 Once you have verified this, then we can run either the exploration, training or testing script.
 
 # Exploration Script
+
+The exploration script 'cross_validation_experiment.py' will try a variety of hyperparameters on the module using 5 fold cross validation. Ray Tune is used to scale up the experiments, running many at a time. The job script is the file 'run-cross_validation_experiment-gpu-shared.sh'. In order to queue this job on the gpu-shared partition of the server, run the following command:
+
+```
+sbatch run-cross_validation_experiment-gpu-shared.sh'
+```
+
+You can check the status of your job by running:
+
+```
+squeue -u $USER
+```
+
+This is an example output of running the previous commmand. The ST column refers to state, in this case the job is pending.
+
+```             
+JOBID       PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+37109179    gpu-debug cross_va lbutler2 PD       0:00      1 (Priority)
+```
