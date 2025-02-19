@@ -31,17 +31,17 @@ Now, we have a container we can use for training.
 
 # Data Setup
 
-First, locate the 'tfrecords_cherrypicked' folder. This contains the training, testing, and validation audio samples of both elephant rumbles and non-elephant signals. If you are using the SDSC access server, the folder is unzipped and placed in /tmp/elp_data (unless someone moved it).
+First, locate the 'elp_audio_tfrecords' folder. This contains the training, testing, and validation audio samples of both elephant rumbles and non-elephant signals. If you are using the SDSC access server, the folder is unzipped and placed in /tmp/elp_audio_tfrecords (unless someone moved it).
 
 If the file is zipped than unzip it. 
 ```
 unzip tfrecords_cherrypicked.zip 
 ```
 
-Now, its time to convert the audio samples into spectrogram samples. Move into the folder 'ELP-CNN-Spectrogram/data_creation' and run the following command to create the spectrogram files from the 'tfrecords_cherrypicked' folder.
+Now, its time to convert the audio samples into spectrogram samples. Move into the folder 'ELP-CNN-Spectrogram/data_creation' and run the following command to create the spectrogram files from the 'elp_audio_tfrecords' folder.
 
 ```
-python convert_audio_samples_to_spectrogram.py --audio_tfrecords_directory <path-to>/tfrecords_cherrypicked --output_folder ../spectrogram_records
+python convert_audio_samples_to_spectrogram.py --audio_tfrecords_directory <path-to>/elp_audio_tfrecords --output_folder ../spectrogram_records
 ```
 
 Once the new files are created, make sure that the config.py file is configured to load the data correctly. This means making sure the path points to the correct folder and the file names match. Move into the ELP-CNN-Spectrogram directory, go into config.py and make sure that these parameters are set properly:
