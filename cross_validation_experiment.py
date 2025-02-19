@@ -48,19 +48,6 @@ def train_step(net, optimizer, loss_fn, samples, labels):
 
     return loss
 
-search_space = {  
-    "learning_rate": tune.loguniform(1e-5, 1e-3),
-    "learning_rate_decay_steps": tune.choice([500]),
-    "learning_rate_decay": tune.choice([0.98]),
-    "momentum": tune.choice([0.9]),
-    "batch_size": tune.choice([8, 16, 32, 64]),
-    "epochs": tune.choice([50]),
-    "activation_function": tune.choice(["ReLU"]), #``, "LeakyReLU"]),
-    "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
-    "optimizer": tune.choice(["adam", "sgd"]),
-    "model": tune.choice([Model])
-}
-
 def trainable(config):
 
     print(config)
@@ -141,17 +128,35 @@ def trainable(config):
     avg_loss = sum(fold_loss_results)/len(fold_loss_results)
     avg_acc = sum(fold_accuracy_results)/len(fold_accuracy_results)
 
-    tf.print(f"Avg. Val. Loss: {avg_loss:.2f} Avg. Val. Acc: {avg_acc:.2f}")
+    tf.print(f"Config: {config} Avg. Val. Loss: {avg_loss:.2f} Avg. Val. Acc: {avg_acc:.2f}")
     tune.report({'config': config, 'avg_loss': avg_loss, 'avg_acc': avg_acc})
 
 
 if __name__ == "__main__":
+
+    search_space = {  
+        "learning_rate": tune.loguniform(1e-5, 1e-3),
+        "learning_rate_decay_steps": tune.choice([500]),
+        "learning_rate_decay": tune.choice([0.98]),
+        "momentum": tune.choice([0.9]),
+        "batch_size": tune.choice([8, 16, 32, 64]),
+        "epochs": tune.choice([50]),
+        "activation_function": tune.choice(["ReLU"]), #, "LeakyReLU"]),
+        "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
+        "optimizer": tune.choice(["adam", "sgd"]),
+        "model": tune.choice([Model])
+    }
+    
     ray.init(ignore_reinit_error=True)
 
-    resources={"cpu": 4, "gpu": 1}
+    resources={"cpu": 1, "gpu": 1}
 
     tuner = tune.Tuner(
         tune.with_resources(trainable, resources),
         param_space=search_space,
+        tune_config=tune.TuneConfig(
+            num_samples=10,
+            max_concurrent_trials=2
+        ),
     )
     tuner.fit()

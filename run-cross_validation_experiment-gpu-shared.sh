@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=cross_validation_experiment
 ####Change account below
-#SBATCH --account=lbutler2
+#SBATCH --account=cso100
 #SBATCH --partition=gpu-shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=10
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=90G
-#SBATCH --gpus=1
-#SBATCH --gres=gpu:1
+#SBATCH --mem=30G
+#SBATCH --gpus=2
 #SBATCH --time=00:30:00
 #SBATCH --output=%x.o%j.%N
 
