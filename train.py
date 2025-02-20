@@ -1,32 +1,17 @@
 # Lucas Butler
 # Training script
 
-import time
-import datetime
-import gc
-import itertools
-
-from utils import read_tfrecords, get_tfrecord_length
-from alexnet import AlexNet
-from cnn_small import SmallCNN
-
-#model = small_cnn
-model = SmallCNN
-
 import tensorflow as tf
-
-import sys
+from utils import read_tfrecords, get_tfrecord_length
+from model import Model
 import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
+from config import GlobalConfiguration
+cfg = GlobalConfiguration()
 
-from trainer import Trainer
-from config import Configuration
-
-tf.random.set_seed(1)	# For deterministic ops
+tf.random.set_seed(1)
 
 # Get the list of GPUs
 gpus = tf.config.list_physical_devices('GPU')
-
 if gpus:
     try:
         # Set memory growth to True for each GPU
@@ -35,107 +20,113 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
+@tf.function
+def train_step(net, optimizer, loss_fn, samples, labels):
+    with tf.GradientTape() as tape:
+        predictions = net(samples, training=True)
+        loss = loss_fn(labels, predictions)
+    
+    gradients = tape.gradient(loss, net.trainable_weights)
+    optimizer.apply_gradients(zip(gradients, net.trainable_weights))
+
+    return loss
+
+def trainable(config):
+
+    # Load datasets
+    training_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TRAIN_FILE), buffer_size=64000)
+    validation_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.VALIDATE_FILE), buffer_size=64000)
+
+    # Get shape and dataset size
+    for sample, label in training_dataset.take(1):
+        shape = [None] + sample.shape
+    tf.print(shape)
+    dataset_size = get_tfrecord_length(training_dataset)
+
+    tf.print(f"Number of train records: {dataset_size}")
+    tf.print(f"Number of validate records: {get_tfrecord_length(validation_dataset)}")
+
+    # Define learning rate schedule
+    lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(
+        initial_learning_rate=config['learning_rate'],  
+        decay_steps=config['learning_rate_decay_steps'],
+        decay_rate=config['learning_rate_decay'],
+        staircase=True 
+    )
+    
+    # Loss Function
+    loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
+
+    # Create a fresh model for each fold
+    net = config['model'](model_config=config, training=True)
+    net.build(shape)
+
+    # Optimization
+    if config["optimizer"] == "adam":
+        optimizer = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
+    elif config["optimizer"] == "sgd":
+        optimizer = tf.keras.optimizers.SGD(learning_rate=lr_schedule, momentum=config["momentum"])
+
+    optimizer.build(net.trainable_weights)
+
+    patience_counter = 0
+    best_loss = float('inf')
+
+    # Iterate through epochs
+    for _ in range(config['epochs']):
+
+        # Training passes
+        train_loss = 0.0
+        for step, (samples, labels) in enumerate(training_dataset.batch(config['batch_size']).shuffle(buffer_size=dataset_size)):
+            train_loss += train_step(net, optimizer, loss_fn, samples, labels)
+
+        # Validation runs
+        validation_loss = 0.0
+        total_accuracy = 0.0
+        batches = 0
+        for samples, labels in validation_dataset.batch(config['batch_size']):
+            # Get loss
+            predictions = net(samples, training=False)
+            validation_loss += loss_fn(labels, predictions).numpy()
+
+            # Calculate accuracy
+            pred_classes = tf.cast(predictions > cfg.PROB_THRESHOLD, dtype=tf.int32)
+            correct_predictions = tf.equal(pred_classes, tf.cast(labels, tf.int32))
+            
+            total_accuracy += tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
+            batches += 1
+        
+        # Check early stopping
+        if best_loss - config['min_delta'] > validation_loss:
+            best_loss = validation_loss
+            patience_counter = 0
+            net.save('model')
+        else:
+            patience_counter += 1
+            if patience_counter > config['patience']:
+                break
+
+        # Compute validation metrics
+        validation_accuracy = total_accuracy / batches
+
+        tf.print(f"Validation loss: {validation_loss:.2f} Validation Accuracy: {validation_accuracy:.2f}")
+
+
 if __name__ == '__main__':
-	i = 0
 
-	# Make dir for logs
-	if not os.path.exists("logs"):
-		os.makedirs('logs')
-	while os.path.exists("logs/log%s.txt" % i):
-		i += 1
+    training_config = {  
+        "learning_rate": 0.0001,
+        "learning_rate_decay_steps": 500,
+        "learning_rate_decay": 0.98,
+        "momentum": 0.9,
+        "batch_size": 8,
+        "epochs": 50,
+        "activation_function": "ReLU",
+        "dropout_rate": 0.7,
+        "optimizer": "sgd",
+        "model": Model,
+        "patience": 10,
+        "min_delta": 0.001,
+    }
 
-	# Initialize log path
-	LOG_PATH = "logs/log%s.txt" % i
-	def print(msg):
-		with open(LOG_PATH,'a') as f:
-			f.write(f'{time.ctime()}: {msg}\n')
-
-	# Global configuration settings for training and testing
-	cfg = Configuration()
-
-	train = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TRAIN_FILE), buffer_size=64000)
-	tf.print(f"Number of train records: {get_tfrecord_length(train)}")
-
-	cross_validate = cfg.CROSS_VALIDATE
-	if cross_validate:
-		batch_sizes = [8, 16, 32, 64]
-
-		# Enumerate all possible options of hyperparameters
-		hyperparameters = list(itertools.product(batch_sizes))
-
-		# Helpful for viewing what we are doing
-		for p in hyperparameters:
-			tf.print(p)
-
-		k_folds = cfg.K_FOLDS
-		dataset_size = sum(1 for _ in train)  # Calculate the total number of samples
-		fold_size = dataset_size // k_folds  # Calculate the size of each fold
-		fold_config_results = []
-
-		for parameters in hyperparameters:
-			fold_results = []
-
-			for fold_idx in range(k_folds):
-				# Create a fresh model for each fold
-				net = model(cfg=cfg, training=True)
-				trainer = Trainer(cfg=cfg, net=net)
-
-				# Create validation dataset for the current fold
-				val_dataset = train.skip(fold_idx * fold_size).take(fold_size)
-
-				# Create training dataset by skipping the validation fold and concatenating the rest
-				train_dataset = train.take(fold_idx * fold_size).concatenate(
-					train.skip((fold_idx + 1) * fold_size)
-				)
-
-				# Run training for this fold
-				fold_val_loss = trainer.train(
-					trainset=train_dataset.batch(parameters[0]), 
-					valset=val_dataset.batch(parameters[0]), 
-					cross_validate=True, 
-					max_epochs=cfg.MAX_CV_EPOCHS
-					)
-				
-				tf.print(f'Cross validation fold {fold_idx} loss: {fold_val_loss}')
-				fold_results.append(fold_val_loss)
-
-				# Clean up
-				del train_dataset
-				del val_dataset
-				del net
-				del trainer
-				tf.keras.backend.clear_session()
-				gc.collect()
-
-			# Store the average loss for this set of parameters
-			avg_val_loss = sum(fold_results) / len(fold_results)
-			print(f"Cross-validation average validation loss: {avg_val_loss}")
-			fold_config_results.append((parameters, avg_val_loss))
-
-		# Best configuration
-		best_hyperparameters = max(fold_config_results, key=lambda x: x[1])
-		print(f"Best configuration:\n{best_hyperparameters}")
-
-		# Best parameter assignments, only using batchsize for now
-		batch_size = best_hyperparameters[0]
-	else:
-		batch_size = cfg.BATCH_SIZE
-
-	validate = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.VALIDATE_FILE), buffer_size=10000)
-	tf.print(f"Number of validate records: {get_tfrecord_length(validate)}")
-
-	# Tensorboard start
-	run_name = f"run_{datetime.datetime.now().strftime('%Y%m%d-%H%M%S')}"
-	log_dir = os.path.join(cfg.LOG_DIR, run_name)
-	tensorboard_writer = tf.summary.create_file_writer(log_dir)
-
-	# Log the chosen parameters 
-	with tensorboard_writer.as_default():
-		tf.summary.text("Batch Size", str(batch_size), step=0)
-
-	# Load the model and trainer
-	net = model(cfg=cfg, training=True)
-	trainer = Trainer(cfg=cfg, net=net)
-
-	# Call train function on trainer class
-	trainer.train(trainset=train.batch(batch_size), valset=validate.batch(batch_size), cross_validate=False, tensorboard_writer=tensorboard_writer, max_epochs=cfg.EPOCHS)
+    trainable(training_config)

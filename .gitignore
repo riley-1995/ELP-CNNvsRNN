@@ -13,3 +13,7 @@ spectrogram_records/
 data/
 core*
 *.exp*
+.cross_validation_experiment.py.swp
+.environment.yml.swp
+train-container-sandbox/
+.utils.py.swp
