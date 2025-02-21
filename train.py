@@ -101,9 +101,12 @@ def trainable(config):
             best_loss = validation_loss
             patience_counter = 0
             net.save('model')
+            tf.print(f"Best loss updated: {best_loss}, net saved.")
         else:
             patience_counter += 1
+            tf.print(f"No loss decrease, patience counter: {patience_counter}")
             if patience_counter > config['patience']:
+                tf.print(f"Stopping training.")
                 break
 
         # Compute validation metrics
