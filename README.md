@@ -9,7 +9,7 @@ module load singularitypro
 
 Then, build the container into a Singularity sandbox. The output of this command will be a directory named 'sandbox_container':
 ```
-singularity sandbox create sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
+singularity build --sandbox sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
 ```
 
 Once the container has been built into a sandbox directory, load the container in a shell:
