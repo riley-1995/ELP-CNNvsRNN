@@ -49,7 +49,7 @@ class Model(tf.keras.Model):
 		fc_init = tf.compat.v1.glorot_normal_initializer()
 
 		self.fc1 = tf.keras.layers.Dense(256, activation=self.activation_function, kernel_initializer=fc_init)
-		self.drop1 = tf.keras.layers.Dropout(self.cfg.DROPOUT)
+		self.drop1 = tf.keras.layers.Dropout(self.cfg['dropout_rate'])
 
 		self.fc2 = tf.keras.layers.Dense(50, activation=self.activation_function, kernel_initializer=fc_init)
 
@@ -85,3 +85,7 @@ class Model(tf.keras.Model):
 		output = self.out(output)
 
 		return output
+
+        def get_config(self):
+            config = super().get_config()
+            return config

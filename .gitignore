@@ -2,7 +2,7 @@
 logs/
 ckpt/
 results/
-model.keras
+model
 *.png
 audio_tfrecords_cherrypick/
 audio_tfrecords/
@@ -17,3 +17,4 @@ core*
 .environment.yml.swp
 train-container-sandbox/
 .utils.py.swp
+elp_spectrogram_records/

@@ -6,6 +6,8 @@ from utils import read_tfrecords, get_tfrecord_length
 from model import Model
 import os
 from config import GlobalConfiguration
+import csv
+
 cfg = GlobalConfiguration()
 
 tf.random.set_seed(1)
@@ -33,6 +35,17 @@ def train_step(net, optimizer, loss_fn, samples, labels):
 
 def trainable(config):
 
+    results_dict = {
+        "val_loss": 0,
+        "val_acc": 0,
+        "train_loss": 0
+    }
+
+    # set up the output file 
+    with open(config['output_file'], mode='w', newline='') as file:
+        writer = csv.DictWriter(file, fieldnames=results_dict.keys())
+        writer.writeheader()
+
     # Load datasets
     training_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TRAIN_FILE), buffer_size=64000)
     validation_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.VALIDATE_FILE), buffer_size=64000)
@@ -58,7 +71,7 @@ def trainable(config):
     loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     # Create a fresh model for each fold
-    net = config['model'](model_config=config, training=True)
+    net = config['model'](model_config=config, training=False)
     net.build(shape)
 
     # Optimization
@@ -80,6 +93,8 @@ def trainable(config):
         for step, (samples, labels) in enumerate(training_dataset.batch(config['batch_size']).shuffle(buffer_size=dataset_size)):
             train_loss += train_step(net, optimizer, loss_fn, samples, labels)
 
+        results_dict['train_loss'] = train_loss
+
         # Validation runs
         validation_loss = 0.0
         total_accuracy = 0.0
@@ -95,6 +110,8 @@ def trainable(config):
             
             total_accuracy += tf.reduce_mean(tf.cast(correct_predictions, tf.float32))
             batches += 1
+
+        results_dict['val_loss'] = validation_loss
         
         # Check early stopping
         if best_loss - config['min_delta'] > validation_loss:
@@ -111,6 +128,12 @@ def trainable(config):
 
         # Compute validation metrics
         validation_accuracy = total_accuracy / batches
+
+        results_dict['val_acc'] = validation_accuracy
+
+        with open(config['output_file'], mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(results_dict.values())
 
         tf.print(f"Validation loss: {validation_loss:.2f} Validation Accuracy: {validation_accuracy:.2f}")
 
@@ -130,6 +153,7 @@ if __name__ == '__main__':
         "model": Model,
         "patience": 10,
         "min_delta": 0.001,
+        "output_file": "training_run.csv"
     }
 
     trainable(training_config)

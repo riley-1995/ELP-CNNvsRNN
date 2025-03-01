@@ -4,7 +4,7 @@ import os
 class GlobalConfiguration(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/spectrogram_records'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/elp_spectrogram_records'
 
 	TRAIN_FILE = 'spectrogram_train_cherrypick.tfrecord'
 	VALIDATE_FILE = 'spectrogram_validate_cherrypick.tfrecord'
