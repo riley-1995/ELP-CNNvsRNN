@@ -1,7 +1,6 @@
 **/__pycache__
 logs/
 ckpt/
-results/
 model
 *.png
 audio_tfrecords_cherrypick/

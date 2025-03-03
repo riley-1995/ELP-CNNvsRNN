@@ -3,10 +3,12 @@
 
 import tensorflow as tf
 from utils import read_tfrecords, get_tfrecord_length
-from model import Model
 import os
 from config import GlobalConfiguration
 import csv
+
+# from model import Model
+from resnet import Model
 
 cfg = GlobalConfiguration()
 
@@ -93,7 +95,7 @@ def trainable(config):
         for step, (samples, labels) in enumerate(training_dataset.batch(config['batch_size']).shuffle(buffer_size=dataset_size)):
             train_loss += train_step(net, optimizer, loss_fn, samples, labels)
 
-        results_dict['train_loss'] = train_loss
+        results_dict['train_loss'] = train_loss.numpy()
 
         # Validation runs
         validation_loss = 0.0
@@ -117,7 +119,7 @@ def trainable(config):
         if best_loss - config['min_delta'] > validation_loss:
             best_loss = validation_loss
             patience_counter = 0
-            net.save('model')
+            net.save(cfg.MODEL_FILE)
             tf.print(f"Best loss updated: {best_loss}, net saved.")
         else:
             patience_counter += 1
@@ -129,7 +131,7 @@ def trainable(config):
         # Compute validation metrics
         validation_accuracy = total_accuracy / batches
 
-        results_dict['val_acc'] = validation_accuracy
+        results_dict['val_acc'] = validation_accuracy.numpy()
 
         with open(config['output_file'], mode='a', newline='') as file:
             writer = csv.writer(file)
@@ -141,12 +143,12 @@ def trainable(config):
 if __name__ == '__main__':
 
     training_config = {  
-        "learning_rate": 0.0001,
+        "learning_rate": 0.001,
         "learning_rate_decay_steps": 500,
         "learning_rate_decay": 0.98,
         "momentum": 0.9,
-        "batch_size": 8,
-        "epochs": 50,
+        "batch_size": 32,
+        "epochs": 300,
         "activation_function": "ReLU",
         "dropout_rate": 0.7,
         "optimizer": "sgd",

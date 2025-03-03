@@ -2,7 +2,7 @@ import itertools
 import tensorflow as tf
 from utils import read_tfrecords
 import os
-from model import Model
+from resnet import Model
 
 import tensorflow as tf
 print(tf.config.list_physical_devices('GPU'))
@@ -20,7 +20,6 @@ from config import GlobalConfiguration
 from ray import tune
 import ray
 
-from model import Model
 cfg = GlobalConfiguration()
 
 def k_fold_split(dataset, num_folds, fold_idx):
@@ -136,15 +135,15 @@ def trainable(config):
 if __name__ == "__main__":
 
     search_space = {  
-        "learning_rate": 0.0001,
-        "learning_rate_decay_steps": 500,
+        "learning_rate": tune.choice([0.01, 0.001, 0.0001]),
+        "learning_rate_decay_steps": tune.choice([350, 500]),
         "learning_rate_decay": 0.98,
-        "momentum": 0.9,
-        "batch_size": 8,
-        "epochs": tune.choice([50]),
+        "momentum": tune.choice([0.7, 0.9]),
+        "batch_size": tune.choice([ 8, 16, 32]),
+        "epochs": tune.choice([10]),
         "activation_function": "ReLU",
-        "dropout_rate": 0.7,
-        "optimizer": "sgd",
+        "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
+        "optimizer": tune.choice(["adam", "sgd"]),
         "model": Model
     }
     
