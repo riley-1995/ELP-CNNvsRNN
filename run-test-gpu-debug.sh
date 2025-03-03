@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=cross_validation_experiment
+#SBATCH --job-name=train
 ####Change account below
 #SBATCH --account=cso100
 #SBATCH --partition=gpu-debug
@@ -19,4 +19,4 @@ module list
 
 export NVIDIA_DISABLE_REQUIRE=true
 
-time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python -u ./cross_validation_experiment.py
+time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python -u ./test.py

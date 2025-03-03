@@ -25,7 +25,7 @@ class GlobalConfiguration(object):
 	# Paths for Output
 	SUMMARY_PATH = 'results/summary'
 	LOG_DIR = 'results/logs'
-	MODEL_FILE = 'results/model.keras'
+	MODEL_FILE = 'model'
 	TESTING_IMAGES = 'results'
 
 	# Early Stopping Config
