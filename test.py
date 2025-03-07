@@ -17,8 +17,9 @@ from sklearn.metrics import (
 from utils import read_tfrecords, get_tfrecord_length
 from config import GlobalConfiguration
 from resnet import Model
+from rnn import HierarchicalRNN
 
-model = Model
+model = HierarchicalRNN
 
 
 tf.random.set_seed(1)
@@ -34,7 +35,6 @@ if __name__ == '__main__':
     for t in testset.take(1):
         shape = t[0].shape
 
-    # Get the Alexnet form models
     net = tf.keras.models.load_model(cfg.MODEL_FILE, custom_objects={'Model': Model})
     _ = net(tf.random.normal(shape))
 
@@ -92,7 +92,7 @@ if __name__ == '__main__':
     cm = confusion_matrix(all_labels, binary_predictions)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=[0, 1])
     disp.plot(cmap=plt.cm.Blues)
-    plt.title(f'Confusion Matrix at Best Threshold (Abnormal) {best_threshold:.2f}')
+    plt.title(f'Confusion Matrix at Best Threshold {best_threshold:.2f}')
     plt.grid(False)
     plt.savefig(os.path.join(cfg.TESTING_IMAGES, 'Confusion_matrix.png'))
 

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+#SBATCH --job-name=cross_validation_experiment
+####Change account below
+#SBATCH --account=cso100
+#SBATCH --partition=gpu-debug
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=10
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=10G
+#SBATCH --gpus=1
+#SBATCH --time=00:10:00
+#SBATCH --output=%x.o%j.%N
+
+declare -xr SINGULARITY_MODULE='singularitypro/3.11'
+declare -xr CONDA='anaconda3/2021.05/q4munrg'
+
+module purge
+module load "${SINGULARITY_MODULE}"
+module list
+module load "${CONDA}"
+conda activate elp
+
+export NVIDIA_DISABLE_REQUIRE=true
+
+time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python data_creation/convert_audio_samples_to_spectrogram.py --audio_tfrecords_directory ./toughset_audio_records/ --output_folder elp_spectrogram_records/

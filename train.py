@@ -9,6 +9,7 @@ import csv
 
 # from model import Model
 from resnet import Model
+from rnn import HierarchicalRNN
 
 cfg = GlobalConfiguration()
 
@@ -33,14 +34,19 @@ def train_step(net, optimizer, loss_fn, samples, labels):
     gradients = tape.gradient(loss, net.trainable_weights)
     optimizer.apply_gradients(zip(gradients, net.trainable_weights))
 
-    return loss
+    predicted_labels = tf.cast(predictions >= 0.5, tf.int64)
+    correct = tf.equal(predicted_labels, labels)
+    accuracy = tf.reduce_mean(tf.cast(correct, tf.float32))
+
+    return loss, accuracy
 
 def trainable(config):
 
     results_dict = {
         "val_loss": 0,
         "val_acc": 0,
-        "train_loss": 0
+        "train_loss": 0,
+        "train_acc": 0
     }
 
     # set up the output file 
@@ -73,7 +79,7 @@ def trainable(config):
     loss_fn = tf.keras.losses.BinaryCrossentropy(from_logits=False)
 
     # Create a fresh model for each fold
-    net = config['model'](model_config=config, training=False)
+    net = config['model'](model_config=config, training=True)
     net.build(shape)
 
     # Optimization
@@ -92,11 +98,17 @@ def trainable(config):
 
         # Training passes
         train_loss = 0.0
+        train_accuracy = 0.0
+        batches = 0
         for step, (samples, labels) in enumerate(training_dataset.batch(config['batch_size']).shuffle(buffer_size=dataset_size)):
-            train_loss += train_step(net, optimizer, loss_fn, samples, labels)
+            loss, acc = train_step(net, optimizer, loss_fn, samples, labels)
+            train_loss += loss
+            train_accuracy += acc
+            batches += 1
 
         results_dict['train_loss'] = train_loss.numpy()
-
+        results_dict['train_acc'] = train_accuracy / batches
+        
         # Validation runs
         validation_loss = 0.0
         total_accuracy = 0.0
@@ -114,7 +126,7 @@ def trainable(config):
             batches += 1
 
         results_dict['val_loss'] = validation_loss
-        
+
         # Check early stopping
         if best_loss - config['min_delta'] > validation_loss:
             best_loss = validation_loss
@@ -138,6 +150,7 @@ def trainable(config):
             writer.writerow(results_dict.values())
 
         tf.print(f"Validation loss: {validation_loss:.2f} Validation Accuracy: {validation_accuracy:.2f}")
+        tf.print(f"Train loss: {results_dict['train_loss']:.2f} Train Accuracy: {results_dict['train_acc']:.2f}")
 
 
 if __name__ == '__main__':
@@ -152,7 +165,7 @@ if __name__ == '__main__':
         "activation_function": "ReLU",
         "dropout_rate": 0.7,
         "optimizer": "sgd",
-        "model": Model,
+        "model": HierarchicalRNN,
         "patience": 10,
         "min_delta": 0.001,
         "output_file": "training_run.csv"

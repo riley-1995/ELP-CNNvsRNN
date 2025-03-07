@@ -13,12 +13,6 @@ def get_tfrecord_length(dataset):
 	return count
 
 def read_tfrecords(file_name, buffer_size=1000):
-	'''
-	Input:
-		file_name:  File name to read records from.
-	Output:
-		dataset:    TFRecordDataset.
-	'''
 
 	feature_description = {
 		'sample': tf.io.FixedLenFeature([], tf.string),

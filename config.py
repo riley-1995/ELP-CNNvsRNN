@@ -4,11 +4,11 @@ import os
 class GlobalConfiguration(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/elp_spectrogram_records'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/elp_audio_records'
 
-	TRAIN_FILE = 'spectrogram_train_cherrypick.tfrecord'
-	VALIDATE_FILE = 'spectrogram_validate_cherrypick.tfrecord'
-	TEST_FILE = 'spectrogram_test_cherrypick.tfrecord'
+	TRAIN_FILE = 'train.tfrecord'
+	VALIDATE_FILE = 'validate.tfrecord'
+	TEST_FILE = 'toughset_test.tfrecord'
 
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5
@@ -25,8 +25,8 @@ class GlobalConfiguration(object):
 	# Paths for Output
 	SUMMARY_PATH = 'results/summary'
 	LOG_DIR = 'results/logs'
-	MODEL_FILE = 'model'
-	TESTING_IMAGES = 'results'
+	MODEL_FILE = 'rnn_model'
+	TESTING_IMAGES = 'rnn_results'
 
 	# Early Stopping Config
 	PATIENCE = 20
