@@ -107,7 +107,7 @@ def trainable(config):
             batches += 1
 
         results_dict['train_loss'] = train_loss.numpy()
-        results_dict['train_acc'] = train_accuracy / batches
+        results_dict['train_acc'] = (train_accuracy / batches).numpy()
         
         # Validation runs
         validation_loss = 0.0
@@ -156,19 +156,19 @@ def trainable(config):
 if __name__ == '__main__':
 
     training_config = {  
-        "learning_rate": 0.001,
-        "learning_rate_decay_steps": 500,
-        "learning_rate_decay": 0.98,
+        "learning_rate": 0.01,
+        "learning_rate_decay_steps": 200,
+        "learning_rate_decay": 1.0,
         "momentum": 0.9,
-        "batch_size": 32,
+        "batch_size": 8,
         "epochs": 300,
         "activation_function": "ReLU",
-        "dropout_rate": 0.7,
+        "dropout_rate": 0.2,
         "optimizer": "sgd",
         "model": HierarchicalRNN,
         "patience": 10,
         "min_delta": 0.001,
-        "output_file": "training_run.csv"
+        "output_file": f"{cfg.MODEL_FILE}-training_run.csv"
     }
 
     trainable(training_config)

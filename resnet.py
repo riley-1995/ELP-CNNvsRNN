@@ -10,7 +10,8 @@ class Model(tf.keras.Model):
         if self.cfg['activation_function'] == 'ReLU':
             self.activation_function = tf.nn.relu
         elif self.cfg['activation_function'] == 'LeakyReLU':
-            self.activation_function = tf.nn.leaky_relu(alpha=0.2)
+            activation_fn=lambda x: tf.nn.leaky_relu(x, alpha=0.2)
+            self.activation_function = activation_fn
 
         # If input_shape is None, create a dynamic input placeholder
         if input_shape:
@@ -35,8 +36,8 @@ class Model(tf.keras.Model):
 
         # Fully connected layers
         fc_init = tf.keras.initializers.GlorotNormal(seed=42)
-        self.fc1 = tf.keras.layers.Dense(256, activation=self.activation_function, kernel_initializer=fc_init)
         self.drop1 = tf.keras.layers.Dropout(self.cfg['dropout_rate'])
+        self.fc1 = tf.keras.layers.Dense(256, activation=self.activation_function, kernel_initializer=fc_init)
         self.fc2 = tf.keras.layers.Dense(50, activation=self.activation_function, kernel_initializer=fc_init)
         self.out = tf.keras.layers.Dense(1, activation='sigmoid', kernel_initializer=fc_init)
 

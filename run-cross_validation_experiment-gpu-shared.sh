@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=30G
 #SBATCH --gpus=2
-#SBATCH --time=03:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=%x.o%j.%N
 
 declare -xr SINGULARITY_MODULE='singularitypro/3.11'

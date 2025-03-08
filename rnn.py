@@ -11,7 +11,11 @@ class HierarchicalRNN(tf.keras.Model):
         if self.cfg['activation_function'] == 'ReLU':
             self.activation_function = tf.nn.relu
         elif self.cfg['activation_function'] == 'LeakyReLU':
-            self.activation_function = tf.nn.leaky_relu(alpha=0.2)
+            activation_fn=lambda x: tf.nn.leaky_relu(x, alpha=0.2)
+            self.activation_function = activation_fn
+        else:
+            tf.print("No activation specified")
+            exit()
 
         self.sequence_length = 20000
         self.chunk_size = 500

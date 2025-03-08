@@ -3,6 +3,7 @@ import tensorflow as tf
 from utils import read_tfrecords
 import os
 from resnet import Model
+from rnn import HierarchicalRNN
 
 import tensorflow as tf
 print(tf.config.list_physical_devices('GPU'))
@@ -136,15 +137,15 @@ if __name__ == "__main__":
 
     search_space = {  
         "learning_rate": tune.choice([0.01, 0.001, 0.0001]),
-        "learning_rate_decay_steps": tune.choice([350, 500]),
-        "learning_rate_decay": 0.98,
-        "momentum": tune.choice([0.7, 0.9]),
+        "learning_rate_decay_steps": tune.choice([200, 500]),
+        "learning_rate_decay": tune.choice([.92, 0.97, 1.0]),
+        "momentum": tune.choice([0.5, 0.7, 0.9]),
         "batch_size": tune.choice([ 8, 16, 32]),
-        "epochs": tune.choice([10]),
-        "activation_function": "ReLU",
+        "epochs": tune.choice([15]),
+        "activation_function": tune.choice(["ReLU", "LeakyReLU"]),
         "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
         "optimizer": tune.choice(["adam", "sgd"]),
-        "model": Model
+        "model": HierarchicalRNN
     }
     
     ray.init(ignore_reinit_error=True)
@@ -155,7 +156,7 @@ if __name__ == "__main__":
         tune.with_resources(trainable, resources),
         param_space=search_space,
         tune_config=tune.TuneConfig(
-            num_samples=10,
+            num_samples=30,
             max_concurrent_trials=2
         ),
     )
