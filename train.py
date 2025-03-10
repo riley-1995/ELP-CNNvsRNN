@@ -4,13 +4,14 @@
 import tensorflow as tf
 from utils import read_tfrecords, get_tfrecord_length
 import os
-from config import GlobalConfiguration
+from cnn_config import GlobalConfiguration
 import csv
 
 # from model import Model
 from resnet import Model
 from rnn import HierarchicalRNN
 
+model = Model
 cfg = GlobalConfiguration()
 
 tf.random.set_seed(1)
@@ -156,16 +157,16 @@ def trainable(config):
 if __name__ == '__main__':
 
     training_config = {  
-        "learning_rate": 0.01,
-        "learning_rate_decay_steps": 200,
-        "learning_rate_decay": 1.0,
+        "learning_rate": 0.0001,
+        "learning_rate_decay_steps": 500,
+        "learning_rate_decay": 0.97,
         "momentum": 0.9,
         "batch_size": 8,
         "epochs": 300,
-        "activation_function": "ReLU",
+        "activation_function": "LeakyReLU",
         "dropout_rate": 0.2,
         "optimizer": "sgd",
-        "model": HierarchicalRNN,
+        "model": model,
         "patience": 10,
         "min_delta": 0.001,
         "output_file": f"{cfg.MODEL_FILE}-training_run.csv"

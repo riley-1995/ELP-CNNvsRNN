@@ -17,11 +17,11 @@ from sklearn.metrics import (
 )
 
 from utils import read_tfrecords, get_tfrecord_length
-from config import GlobalConfiguration
+from cnn_config import GlobalConfiguration
 from resnet import Model
 from rnn import HierarchicalRNN
 
-model = HierarchicalRNN
+model = Model
 
 # Function to recursively convert NumPy types to Python types
 def convert_to_python_types(obj):

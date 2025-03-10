@@ -4,8 +4,10 @@ from utils import read_tfrecords
 import os
 from resnet import Model
 from rnn import HierarchicalRNN
-
 import tensorflow as tf
+from ray import tune
+import ray
+
 print(tf.config.list_physical_devices('GPU'))
 
 gpus = tf.config.experimental.list_physical_devices('GPU')
@@ -16,12 +18,10 @@ if gpus:
     except RuntimeError as e:
         print(e)
 
-from config import GlobalConfiguration
-
-from ray import tune
-import ray
+from cnn_config import GlobalConfiguration
 
 cfg = GlobalConfiguration()
+model = Model
 
 def k_fold_split(dataset, num_folds, fold_idx):
 
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "activation_function": tune.choice(["ReLU", "LeakyReLU"]),
         "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
         "optimizer": tune.choice(["adam", "sgd"]),
-        "model": HierarchicalRNN
+        "model": model
     }
     
     ray.init(ignore_reinit_error=True)
