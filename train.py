@@ -46,9 +46,10 @@ def trainable(config):
         "train_loss": 0,
         "train_acc": 0
     }
+    cfg = config['config']
 
     # set up the output file 
-    with open(config['output_file'], mode='w', newline='') as file:
+    with open(f"{cfg.MODEL_FILE}-training-run.csv", mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=results_dict.keys())
         writer.writeheader()
 
@@ -143,7 +144,7 @@ def trainable(config):
 
         results_dict['val_acc'] = validation_accuracy.numpy()
 
-        with open(config['output_file'], mode='a', newline='') as file:
+        with open(f"{cfg.MODEL_FILE}-training-run.csv", mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(results_dict.values())
 
@@ -170,26 +171,25 @@ if __name__ == '__main__':
             "config": CNNConfig,
             "patience": 10,
             "min_delta": 0.001,
-            "output_file": f"{cfg.MODEL_FILE}-training_run.csv"
         }
 
     # RNN
     else:
+
         training_config = {  
-            "learning_rate": 0.01,
+            "learning_rate": 0.001,
             "learning_rate_decay_steps": 200,
-            "learning_rate_decay": 1,
-            "momentum": 0.9,
-            "batch_size": 16,
+            "learning_rate_decay": 0.92,
+            "momentum": 0.5,
+            "batch_size": 32,
             "epochs": 300,
             "activation_function": "ReLU",
             "dropout_rate": 0.2,
-            "optimizer": "sgd",
+            "optimizer": "adam",
             "model": RNN,
             "config": RNNConfig,
             "patience": 10,
             "min_delta": 0.001,
-            "output_file": f"{cfg.MODEL_FILE}-training_run.csv"
         }
 
     trainable(training_config)
