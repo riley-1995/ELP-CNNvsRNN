@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras.layers import LSTM, Dense, TimeDistributed, Reshape, Dropout
 
-class HierarchicalRNN(tf.keras.Model):
+class RNN(tf.keras.Model):
     def __init__(self, model_config, training, input_shape=None):
-        super(HierarchicalRNN, self).__init__()
+        super(RNN, self).__init__()
         
         self.cfg = model_config
         self.training = training

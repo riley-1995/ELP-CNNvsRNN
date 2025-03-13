@@ -1,14 +1,14 @@
 # Configuration used for training
 import os
 
-class GlobalConfiguration(object):
+class CNNConfig(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/elp_spectrogram_records'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spec_records_large'
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'
-	TEST_FILE = 'toughset_test.tfrecord'
+	TEST_FILE = 'test.tfrecord'
 
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5
@@ -20,7 +20,7 @@ class GlobalConfiguration(object):
 	# Paths for Output
 	SUMMARY_PATH = 'results/summary'
 	LOG_DIR = 'results/logs'
-	MODEL_FILE = 'cnn_model'
-	TESTING_IMAGES = 'cnn_results'
+	MODEL_FILE = 'cnn_model_largeset'
+	TESTING_IMAGES = 'cnn_results_largest'
 
 

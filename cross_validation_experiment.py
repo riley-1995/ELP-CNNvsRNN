@@ -2,8 +2,10 @@ import itertools
 import tensorflow as tf
 from utils import read_tfrecords
 import os
-from resnet import Model
-from rnn import HierarchicalRNN
+from cnn import CNN
+from rnn import RNN
+from cnn_config import CNNConfig
+from rnn_config import RNNConfig
 import tensorflow as tf
 from ray import tune
 import ray
@@ -17,11 +19,6 @@ if gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
     except RuntimeError as e:
         print(e)
-
-from cnn_config import GlobalConfiguration
-
-cfg = GlobalConfiguration()
-model = Model
 
 def k_fold_split(dataset, num_folds, fold_idx):
 
@@ -51,7 +48,7 @@ def train_step(net, optimizer, loss_fn, samples, labels):
 
 def trainable(config):
 
-    print(config)
+    cfg = config['config']
     training_dataset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TRAIN_FILE), buffer_size=64000)
 
     for sample, label in training_dataset.take(1):
@@ -135,6 +132,14 @@ def trainable(config):
 
 if __name__ == "__main__":
 
+    cnn = False
+    if cnn:
+        model = CNN
+        cfg = CNNConfig
+    else:
+        model = RNN
+        cfg = RNNConfig
+
     search_space = {  
         "learning_rate": tune.choice([0.01, 0.001, 0.0001]),
         "learning_rate_decay_steps": tune.choice([200, 500]),
@@ -145,7 +150,8 @@ if __name__ == "__main__":
         "activation_function": tune.choice(["ReLU", "LeakyReLU"]),
         "dropout_rate": tune.choice([0.2, 0.5, 0.7]),
         "optimizer": tune.choice(["adam", "sgd"]),
-        "model": model
+        "model": model,
+        "config": cfg
     }
     
     ray.init(ignore_reinit_error=True)
@@ -159,5 +165,8 @@ if __name__ == "__main__":
             num_samples=30,
             max_concurrent_trials=2
         ),
+        run_config=tune.RunConfig(
+            storage_path=os.path.join(os.getcwd(), 'cross_validation_results')
+        )
     )
     tuner.fit()

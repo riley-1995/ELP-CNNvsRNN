@@ -17,11 +17,12 @@ from sklearn.metrics import (
 )
 
 from utils import read_tfrecords, get_tfrecord_length
-from cnn_config import GlobalConfiguration
-from resnet import Model
-from rnn import HierarchicalRNN
 
-model = Model
+from cnn_config import CNNConfig
+from rnn_config import RNNConfig
+from cnn import CNN
+from rnn import RNN
+
 
 # Function to recursively convert NumPy types to Python types
 def convert_to_python_types(obj):
@@ -38,7 +39,13 @@ tf.random.set_seed(1)
 
 if __name__ == '__main__':
 
-    cfg = GlobalConfiguration()
+    cnn = True
+    if cnn:
+        model = CNN
+        cfg = CNNConfig()
+    else:
+        model = RNN
+        cfg = RNNConfig()
 
     testset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TEST_FILE), buffer_size=64000)
     testset = testset.batch(8)
@@ -47,7 +54,7 @@ if __name__ == '__main__':
     for t in testset.take(1):
         shape = t[0].shape
 
-    net = tf.keras.models.load_model(cfg.MODEL_FILE, custom_objects={'Model': Model})
+    net = tf.keras.models.load_model(cfg.MODEL_FILE, custom_objects={'Model': model})
     _ = net(tf.random.normal(shape))
 
     all_predictions = []

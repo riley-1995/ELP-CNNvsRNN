@@ -1,8 +1,8 @@
 import tensorflow as tf
 
-class Model(tf.keras.Model):
+class CNN(tf.keras.Model):
     def __init__(self, model_config, training, input_shape=None):
-        super(Model, self).__init__()
+        super(CNN, self).__init__()
 
         self.cfg = model_config
         self.training = training

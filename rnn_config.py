@@ -1,14 +1,14 @@
 # Configuration used for training
 import os
 
-class GlobalConfiguration(object):
+class RNNConfig(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/elp_audio_records'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/audio_records_large'
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'
-	TEST_FILE = 'toughset_test.tfrecord'
+	TEST_FILE = 'test.tfrecord'
 
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5
