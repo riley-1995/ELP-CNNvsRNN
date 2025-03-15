@@ -4,11 +4,11 @@ import os
 class CNNConfig(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spectrogram_tfrecords'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spectrogram_cherrypicked'
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'
-	TEST_FILE = 'test.tfrecord'
+	TEST_FILE = 'toughset_test.tfrecord'
 
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5

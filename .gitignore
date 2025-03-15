@@ -5,6 +5,4 @@ core*
 *.swo
 *.swp
 train-container-sandbox/
-cnn_model/
-rnn_model/
-*cross_validation_results/
+*model*

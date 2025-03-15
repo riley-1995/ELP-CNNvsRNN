@@ -124,7 +124,6 @@ def trainable(config):
 
             fold_loss_results.append(validation_loss)
             fold_accuracy_results.append(validation_accuracy)
-            tune.report({'val_loss': validation_loss})
 
 
     avg_loss = sum(fold_loss_results)/len(fold_loss_results)
@@ -175,11 +174,11 @@ if __name__ == "__main__":
         tune.with_resources(trainable, resources),
         param_space=search_space,
         tune_config=tune.TuneConfig(
-            num_samples=15,
+            num_samples=30,
             max_concurrent_trials=2,
             #metric="val_loss",
             #mode="min",
-        #    search_alg=search_alg
+            #search_alg=search_alg
         ),
         run_config=tune.RunConfig(
             storage_path=os.path.join(os.getcwd(), f'{name}_cross_validation_results')

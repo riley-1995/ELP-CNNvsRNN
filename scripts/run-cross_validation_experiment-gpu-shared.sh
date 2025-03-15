@@ -21,4 +21,4 @@ MODEL_TYPE=$1  # Capture model type argument
 
 export NVIDIA_DISABLE_REQUIRE=true
 
-time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python -u ./cross_validation_experiment.py --model cnn
+time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python -u ./cross_validation_experiment.py --model rnn

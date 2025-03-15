@@ -39,7 +39,7 @@ tf.random.set_seed(1)
 
 if __name__ == '__main__':
 
-    cnn = True
+    cnn = False
     if cnn:
         model = CNN
         cfg = CNNConfig()

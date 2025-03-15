@@ -159,14 +159,14 @@ def trainable(config):
 
 if __name__ == '__main__':
 
-    cnn = True
+    cnn = False
     # CNN
     if cnn: 
         training_config = {  
             "learning_rate": 0.0001,
-            "learning_rate_decay_steps": 500,
-            "learning_rate_decay": 0.97,
-            "momentum": 0.9,
+            "learning_rate_decay_steps": 200,
+            "learning_rate_decay": 1.0,
+            "momentum": 0.5,
             "batch_size": 8,
             "epochs": 300,
             "activation_function": "LeakyReLU",
@@ -185,9 +185,9 @@ if __name__ == '__main__':
         training_config = {  
             "learning_rate": 0.001,
             "learning_rate_decay_steps": 200,
-            "learning_rate_decay": 0.92,
-            "momentum": 0.5,
-            "batch_size": 32,
+            "learning_rate_decay": 0.97,
+            "momentum": 0.9,
+            "batch_size": 8,
             "epochs": 300,
             "activation_function": "ReLU",
             "dropout_rate": 0.2,
