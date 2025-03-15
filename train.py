@@ -48,8 +48,13 @@ def trainable(config):
     }
     cfg = config['config']
 
+    run_folder = f"training_run_{config['name']}-{os.path.basename(cfg.DATASET_FOLDER)}"
+
+    if not os.path.exists(run_folder):
+        os.mkdir(run_folder)
+
     # set up the output file 
-    with open(f"{cfg.MODEL_FILE}-training-run.csv", mode='w', newline='') as file:
+    with open(f"{run_folder}/{cfg.MODEL_FILE}-run-metrics.csv", mode='w', newline='') as file:
         writer = csv.DictWriter(file, fieldnames=results_dict.keys())
         writer.writeheader()
 
@@ -130,7 +135,7 @@ def trainable(config):
         if best_loss - config['min_delta'] > validation_loss:
             best_loss = validation_loss
             patience_counter = 0
-            net.save(cfg.MODEL_FILE)
+            net.save(f'{run_folder}/{cfg.MODEL_FILE}')
             tf.print(f"Best loss updated: {best_loss}, net saved.")
         else:
             patience_counter += 1
@@ -144,7 +149,7 @@ def trainable(config):
 
         results_dict['val_acc'] = validation_accuracy.numpy()
 
-        with open(f"{cfg.MODEL_FILE}-training-run.csv", mode='a', newline='') as file:
+        with open(f"{run_folder}/{cfg.MODEL_FILE}-run-metrics.csv", mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(results_dict.values())
 
@@ -154,7 +159,7 @@ def trainable(config):
 
 if __name__ == '__main__':
 
-    cnn = False
+    cnn = True
     # CNN
     if cnn: 
         training_config = {  
@@ -171,6 +176,7 @@ if __name__ == '__main__':
             "config": CNNConfig,
             "patience": 10,
             "min_delta": 0.001,
+            "name": "cnn"
         }
 
     # RNN
@@ -190,6 +196,7 @@ if __name__ == '__main__':
             "config": RNNConfig,
             "patience": 10,
             "min_delta": 0.001,
+            "name": "rnn"
         }
 
     trainable(training_config)

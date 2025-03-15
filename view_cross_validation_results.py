@@ -42,19 +42,20 @@ def main():
 
     for file in paths:
         with open(file, 'r') as f:
-            data = json.load(f)
+            try:
+                data = json.load(f)
+                result = pd.DataFrame([data['config']])
+                avg_loss = data['avg_loss']
+                match = re.search(r"tf\.Tensor\(([-+]?\d*\.\d+|\d+)", data["avg_acc"])
+                avg_acc = float(match.group(1)) if match else None
 
-            result = pd.DataFrame([data['config']])
-
-            avg_loss = data['avg_loss']
-
-            match = re.search(r"tf\.Tensor\(([-+]?\d*\.\d+|\d+)", data["avg_acc"])
-            avg_acc = float(match.group(1)) if match else None
-
-            result["avg_loss"] = avg_loss
-            result["avg_acc"] = avg_acc
+                result["avg_loss"] = avg_loss
+                result["avg_acc"] = avg_acc
         
-            results = pd.concat([results, result], ignore_index=True)
+                results = pd.concat([results, result], ignore_index=True)
+            except Exception as E:
+                print(E)
+                print(file)
     
     print(results)
     results.to_csv('results.csv')

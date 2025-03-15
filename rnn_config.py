@@ -4,7 +4,7 @@ import os
 class RNNConfig(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/audio_records_large'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/audio_tfrecords'
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'

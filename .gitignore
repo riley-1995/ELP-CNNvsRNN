@@ -7,6 +7,4 @@ core*
 train-container-sandbox/
 cnn_model/
 rnn_model/
-cross_validation_results/
-successful_runs_largeset/
-successful_runs_smallset
+*cross_validation_results/

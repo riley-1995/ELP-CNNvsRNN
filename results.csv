@@ -1,0 +1,20 @@
+,learning_rate,learning_rate_decay_steps,learning_rate_decay,momentum,batch_size,epochs,activation_function,dropout_rate,optimizer,model,config,avg_loss,avg_acc
+0,0.0001,200,0.92,0.9,8,15,ReLU,0.7,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.6810942111107019,0.5273437
+1,0.0001,200,1.0,0.7,16,15,LeakyReLU,0.5,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.23398520658509092,0.5244291
+2,0.001,500,0.97,0.5,8,15,LeakyReLU,0.7,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.33472911535242855,0.53725964
+3,0.0001,200,0.97,0.9,16,15,LeakyReLU,0.2,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.6814050236573586,0.5138221
+4,0.001,200,1.0,0.7,16,15,ReLU,0.7,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.3054791871171731,0.51766825
+5,0.0001,200,1.0,0.7,8,15,ReLU,0.2,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.29395084188391385,0.551262
+6,0.0001,200,0.92,0.7,16,15,LeakyReLU,0.5,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.23248232316512327,0.5254507
+7,0.0001,500,0.97,0.7,16,15,ReLU,0.2,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.253459057971262,0.52475965
+8,0.001,500,1.0,0.9,16,15,LeakyReLU,0.5,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.36076541257162503,0.5175781
+9,0.01,200,0.92,0.7,8,15,ReLU,0.2,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.2535499246289524,0.5490385
+10,0.01,200,1.0,0.9,8,15,ReLU,0.7,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,,0.5171274
+11,0.0001,200,0.97,0.5,16,15,ReLU,0.5,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.2263954821185997,0.5251202
+12,0.001,500,0.97,0.7,32,15,ReLU,0.5,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.4146567980257364,0.5103365
+13,0.01,200,1.0,0.5,8,15,LeakyReLU,0.5,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.268031535218828,0.5481971
+14,0.0001,200,1.0,0.5,16,15,ReLU,0.5,adam,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.3055577565486042,0.5234976
+15,0.001,200,0.97,0.5,16,15,ReLU,0.5,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.6711177220711342,0.51649636
+16,0.0001,200,0.92,0.7,32,15,LeakyReLU,0.7,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.6892657390007606,0.50862384
+17,0.001,200,1.0,0.5,16,15,LeakyReLU,0.7,sgd,<class 'cnn.CNN'>,<class 'cnn_config.CNNConfig'>,0.1752231006861673,0.5236779
+18,0.0001,500,1.0,0.7,16,15,LeakyReLU,0.7,sgd,<class 'rnn.RNN'>,<class 'rnn_config.RNNConfig'>,0.6854525194718288,0.5142728

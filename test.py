@@ -49,10 +49,11 @@ if __name__ == '__main__':
 
     testset = read_tfrecords(os.path.join(cfg.DATASET_FOLDER, cfg.TEST_FILE), buffer_size=64000)
     testset = testset.batch(8)
-
+    
     shape = None
     for t in testset.take(1):
         shape = t[0].shape
+    tf.print(shape)
 
     net = tf.keras.models.load_model(cfg.MODEL_FILE, custom_objects={'Model': model})
     _ = net(tf.random.normal(shape))

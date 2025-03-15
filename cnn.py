@@ -1,4 +1,5 @@
 import tensorflow as tf
+from cnn_config import CNNConfig
 
 class CNN(tf.keras.Model):
     def __init__(self, model_config, training, input_shape=None):
@@ -51,3 +52,29 @@ class CNN(tf.keras.Model):
         x = self.out(x)
         return x
 
+if __name__ == "__main__":
+
+    config = {  
+            "learning_rate": 0.0001,
+            "learning_rate_decay_steps": 500,
+            "learning_rate_decay": 0.97,
+            "momentum": 0.9,
+            "batch_size": 8,
+            "epochs": 300,
+            "activation_function": "LeakyReLU",
+            "dropout_rate": 0.2,
+            "optimizer": "sgd",
+            "config": CNNConfig,
+            "patience": 10,
+            "min_delta": 0.001,
+        }
+    # Ensure the model is built
+    model = CNN(model_config=config, training=True, input_shape=(563, 98, 1))  # Example input shape
+
+    # If needed, you can call build() explicitly:
+    model.build(input_shape=(None, 563, 98, 1))  # None allows for batch size flexibility
+
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+    # Now you can safely call summary
+    model.summary()

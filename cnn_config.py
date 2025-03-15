@@ -4,7 +4,7 @@ import os
 class CNNConfig(object):
 
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spec_records_large'
+	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spectrogram_tfrecords'
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'
@@ -20,7 +20,6 @@ class CNNConfig(object):
 	# Paths for Output
 	SUMMARY_PATH = 'results/summary'
 	LOG_DIR = 'results/logs'
-	MODEL_FILE = 'cnn_model_largeset'
-	TESTING_IMAGES = 'cnn_results_largest'
-
+	MODEL_FILE = 'cnn_model'
+	TESTING_IMAGES = 'cnn_results'
 
