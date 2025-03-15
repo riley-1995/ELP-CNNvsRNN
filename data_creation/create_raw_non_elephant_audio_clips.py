@@ -47,7 +47,7 @@ def find_wav_files(folder_file, array):
         array.append(folder_file)
     
 # Non-Elephant Signals
-target_input_dir = '/home/lucas/Desktop/ELP-sounds-folder/Non-elephant signals'
+target_input_dir = 'Non-elephant signals'
 target_output_dir = 'non_elephant_raw_audio'
 
 if not os.path.exists(target_output_dir) or not os.path.isdir(target_output_dir):
@@ -58,7 +58,7 @@ wav_files = []
 find_wav_files(target_input_dir, wav_files)
 
 counter = 0
-
+count = 3000
 sample_length = 5 # seconds
 target_sr = 4000 # hz
 
@@ -103,4 +103,10 @@ for file in wav_files:
                 print("Not saving, insufficient frames")
                 
             counter += 1
-            starting_pos += int(params.framerate // 2) # Shift the starting postition forward 1 second
+
+            if counter == count:
+                print("Max count reached")
+                exit()
+
+
+            starting_pos += int(sample_length * params.framerate)

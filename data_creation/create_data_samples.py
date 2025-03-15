@@ -85,7 +85,7 @@ def main():
   os.makedirs(audio_folder, exist_ok=True)
   
   for split, name in zip([train, val, test], ["train", "validate", "test"]):
-      write_tfrecords(split, os.path.join(audio_folder, f"audio_{name}"))
+      write_tfrecords(split, os.path.join(audio_folder, f"{name}"))
 
 if __name__ == "__main__":
   main()

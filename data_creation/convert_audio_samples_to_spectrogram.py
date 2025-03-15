@@ -124,7 +124,7 @@ def main():
     for dataset, file_name in datasets:
         normalized_dataset = dataset.map(lambda spectrogram, label: (normalize_spectrogram(spectrogram, global_mean, global_std), label), num_parallel_calls=tf.data.AUTOTUNE)
         
-        write_tfrecords(normalized_dataset, os.path.join(spectrogram_dataset, f"spectrogram_{file_name}"))
+        write_tfrecords(normalized_dataset, os.path.join(spectrogram_dataset, f"{file_name}"))
 
 if __name__ == "__main__":
     main()
