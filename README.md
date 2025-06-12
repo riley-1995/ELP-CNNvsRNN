@@ -2,15 +2,74 @@
 
 If you are using the SDSC Expanse/ACCESS server, they provide a variety of containers for Tensorflow training. In my case, I needed a container with the Ray Tune package, which was unavailable. If you are too lazy to get permission to build an image, a nice work around to is to convert a prexisting container into a Singularity sandbox, run the sandbox container in a shell, add the needed packages, then launch scripts using that sandbox container.
 
-First, load the singularity module:
+First, login and run the NSF ACCESS expanse shell either via the online user portal: https://portal.expanse.sdsc.edu/ or from your terminal's command line via ssh. See documentation for details: https://www.sdsc.edu/systems/expanse/user_guide.html
+
+
+Next, build the sandbox container. Note: This may take a while!
+
+Start by creating a bash script with the editor of your choice. In this example, nano is used:
 ```
+nano setup-elp-sandbox.sh
+```
+
+Paste the following into the script:
+```
+#!/usr/bin/bash
+
 module load singularitypro
+
+singularity build --sandbox sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
+```
+
+These commands will load the singularitypro module and build the sandbox container.
+
+Exit and save the script.
+
+Change the script permissions to executable:
+```
+chmod +x setup-elp-sandbox.sh
+```
+
+Verify file permissions:
+```
+ls -la setup-elp-sandbox.sh
+```
+
+Run the script in the background using:
+```
+nohup ./setup-elp-sandbox.sh &
+```
+This will allow you to exit the expanse shell session safely without killing the process.
+
+You can view the output of the script with:
+```
+cat nohup.out
+```
+
+#### Other useful commands:
+
+View all the users and resource usage on the current node:
+```
+htop
+```
+
+View the storage space the build is taking up. If this number increases when periodically checking it, the build is still in progress.
+Replace build-temp-1430907312/ with the appropriate build-temp-######### folder in your directory.
+```
+du-ha --max-depth=1 build-temp-1430907312/
+```
+
+<!-- Old commands by Lucas
+
+Next, load the singularity module:
+```
+module load singularitypro  
 ```
 
 Then, build the container into a Singularity sandbox. The output of this command will be a directory named 'sandbox_container':
 ```
 singularity build --sandbox sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
-```
+``` -->
 
 Once the container has been built into a sandbox directory, load the container in a shell:
 ```
