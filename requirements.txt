@@ -1,0 +1,9 @@
+tensorflow==2.15.1
+ray[tune]
+optuna
+pandas
+numpy
+matplotlib
+scikit-learn
+librosa
+scipy
