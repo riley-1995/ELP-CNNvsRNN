@@ -9,7 +9,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 tf.config.set_visible_devices([], 'GPU')
 print(tf.config.list_physical_devices())
 
-# Define inputss
+# Define inputs
 inputs = [
     {"folder": os.path.join(PROJECT_ROOT, "data", "training_clips_pos"), "label": 1, "split": "train"},
     {"folder": os.path.join(PROJECT_ROOT, "data", "training_clips_neg"), "label": 0, "split": "train"},
