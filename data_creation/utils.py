@@ -1,5 +1,5 @@
 import wave
-from scipy.signal import resample
+from scipy.signal import resample, butter, lfilter
 import numpy as np
 import os
 import tensorflow as tf
@@ -31,6 +31,28 @@ def down_sample(audio, input_sr, output_sr, target_frames):
     
     return down_sampled_audio
 
+def apply_low_pass_filter(audio_data, sample_rate, cutoff_hz=200, order=5):
+    """
+    Applies a low-pass Butterworth filter to audio data.
+
+    Args:
+        audio_data (np.array): The audio time-series data.
+        sample_rate (int): The sample rate of the audio.
+        cutoff_hz (int): The cutoff frequency for the filter.
+        order (int): The order of the filter.
+
+    Returns:
+        np.array: The filtered audio data.
+    """
+    nyquist_freq = 0.5 * sample_rate
+    normal_cutoff = cutoff_hz / nyquist_freq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    
+    # Ensure audio_data is float for filtering
+    filtered_data = lfilter(b, a, audio_data.astype(np.float64))
+    
+    return filtered_data
+
 def get_wav_params(file_path):
     with wave.open(file_path, 'rb') as wav_file:
         params = wav_file.getparams()
@@ -49,6 +71,16 @@ def save_audio_to_wav(filename, audio_data, sample_rate, num_channels=1, sample_
 
         # Write the audio data to the file
         wav_file.writeframes(audio_data.tobytes())
+
+def count_wavs(directory):
+    """Counts .wav files in a directory"""
+    print(f"Checking for existing clips in: {directory}")
+    if not os.path.isdir(directory):
+        print("Directory not found.")
+        return -1
+    count = len([f for f in os.listdir(directory) if f.endswith('.wav')])
+    print(f"{count} clips found.")
+    return count
 
 def find_wav_files(folder_file, array):
     if os.path.isdir(folder_file):
