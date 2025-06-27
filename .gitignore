@@ -1,6 +1,9 @@
 **/__pycache__
 data/
+raw_data/
 core*
+.DS_Store
+.env
 *.exp*
 *.swo
 *.swp
