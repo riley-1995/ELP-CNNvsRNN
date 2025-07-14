@@ -48,7 +48,7 @@ Paste in the following:
 # Load Singularity module
 module load singularitypro
 
-# Set working paths (be sure to update with your username!)
+# Set working paths
 SCRATCH_DIR=/expanse/lustre/scratch/$USER/temp_project/elp_sandbox_tmp_$SLURM_JOB_ID
 PROJECT_DIR=/expanse/lustre/projects/cso100/$USER/elp_container
 
@@ -69,7 +69,7 @@ rm -rf $SCRATCH_DIR/build-temp-*/
 # Build the container in scratch
 singularity build --sandbox $SCRATCH_DIR/sandbox/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif || { echo "❌ Singularity build failed"; exit 1; }
 
-# Copy requirements file - Update your-repo-name accordingly
+# Copy requirements file - Update your repo name accordingly
 cp /expanse/lustre/projects/cso100/$USER/ELP-CNNvsRNN/requirements.txt $SCRATCH_DIR/requirements.txt || { echo "❌ Could not copy requirements.txt"; exit 1; }
 
 # Install dependencies inside container
@@ -182,7 +182,7 @@ Now you're inside the container and ready to run training or experiments.
 
 ## Legacy Manual Build (Not Recommended)
 
-If you prefer the manual way and want to use the login node (not recommended):
+If you prefer to use the login node to build the container (not recommended):
 ```bash
 module load singularitypro
 singularity build --sandbox sandbox_container/ /cm/shared/apps/containers/singularity/tensorflow/tensorflow-latest.sif
@@ -267,33 +267,6 @@ less cleanup_scratch_*.log
 ```
 
 ---
-
-## Optional: 📁 Upload Local Data to Project Storage
-
-To upload your local data (requires Cornell data access) to SDSC Expanse project storage, use the `rsync` command from your local terminal:
-```bash
-rsync -avh --progress \
-"/path/to/local/data/" \
-rdenn@login.expanse.sdsc.edu:/expanse/lustre/projects/cso100/rdenn/data/
-```
-
-Replace `"/path/to/local/data/"` with the full path to your local data folder.
-
-- ✅ If interrupted, you can re-run the same command to resume
-- ✅ You can split your upload by subfolder if needed
-- ✅ If you prefer, you can do the data pre-processing locally and upload only the processed data to the remote NSF Access project storage (recommended)
-
-You can check storage usage (snapshot) on Expanse with:
-```bash
-du -sh /expanse/lustre/projects/cso100/$USER/data/
-```
-
-Or to monitor it continuously as it grows:
-```bash
-watch -n 5 'du -sh /expanse/lustre/projects/cso100/$USER/data/'
-```
-
-Note: This process may take a long time!
 
 # General Setup (Local Machine)
 
@@ -380,6 +353,38 @@ DATASET_FOLDER = 'audio_tfrecords'
 TRAIN_FILE = 'train.tfrecord'
 VALIDATE_FILE = 'validate.tfrecord'
 TEST_FILE = 'test.tfrecord'
+```
+
+---
+
+## After Preprocessing Data Locally, Upload to Expanse Project Storage
+
+To upload your local preprocessed tfrecords data to SDSC Expanse project storage, use the `rsync` command from your local terminal:
+```bash
+rsync -avh --progress \
+"/path/to/local/project/ELP-CNNvsRNN/data" \
+rdenn@login.expanse.sdsc.edu:/expanse/lustre/projects/cso100/your_username/elp_container/ELP-CNNvsRNN/data
+
+rsync -avh --progress \
+"/path/to/local/project/repo/ELP-CNNvsRNN/data/tfrecords_audio" \
+"/path/to/local/project/repo/ELP-CNNvsRNN/data/tfrecords_spectrogram" \
+rdenn@login.expanse.sdsc.edu:/expanse/lustre/projects/cso100/your_username/elp_container/ELP-CNNvsRNN/data/
+```
+
+Replace `"/path/to/local/project/repo/"` with the full path to your local git project repo and replace `your_username` with your ACCESS Expanse username.
+
+Note: This may take a while!
+
+If interrupted, you can re-run the same command to resume.
+
+You can check storage usage (snapshot) on Expanse with:
+```bash
+du -sh /expanse/lustre/projects/cso100/$USER/elp_container/ELP-CNNvsRNN/data/
+```
+
+Or to monitor it continuously as it grows:
+```bash
+watch -n 5 'du -sh /expanse/lustre/projects/cso100/$USER/elp_container/ELP-CNNvsRNN/data/'
 ```
 
 ---
