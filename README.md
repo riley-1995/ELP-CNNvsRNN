@@ -363,7 +363,8 @@ cd ELP-CNNvsRNN
 
 Cut audio clippings:
 ```bash
-python3 data_creation/pos_audio_clips.py
+python3 data_creation/pos_audio_clips.py --mode train
+python3 data_creation/pos_audio_clips.py --mode test
 python3 data_creation/neg_audio_clips.py
 ```
 

@@ -2,22 +2,23 @@ import os
 import tensorflow as tf
 from functools import reduce
 from utils import *
-from pathlib import Path
-
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
+from data_path_config import DataPathConfig
 
 tf.config.set_visible_devices([], 'GPU')
 print(tf.config.list_physical_devices())
 
-# Define inputs
+paths = DataPathConfig()
+
+# Define inputs based on the data paths
 inputs = [
-    {"folder": os.path.join(PROJECT_ROOT, "data", "training_clips_pos"), "label": 1, "split": "train"},
-    {"folder": os.path.join(PROJECT_ROOT, "data", "training_clips_neg"), "label": 0, "split": "train"},
-    {"folder": os.path.join(PROJECT_ROOT, "data", "testing_clips_pos"),  "label": 1, "split": "test"},
-    {"folder": os.path.join(PROJECT_ROOT, "data", "testing_clips_neg"),  "label": 0, "split": "test"},
+    {"folder": paths.POS_TRAIN_VAL_CLIPS_DIR, "label": 1, "split": "train"},
+    {"folder": paths.TRAIN_VAL_NEG_CLIPS_DIR, "label": 0, "split": "train"},
+    {"folder": paths.POS_HOLDOUT_TEST_CLIPS_DIR, "label": 1, "split": "test"},
+    {"folder": paths.HOLDOUT_TEST_NEG_CLIPS_DIR, "label": 0, "split": "test"},
 ]
 
-output_audio_folder = os.path.join(PROJECT_ROOT, "data", "audio_tfrecords")
+# Create output folder for audio TFRecords
+output_audio_folder = paths.TFRECORDS_AUDIO_DIR
 os.makedirs(output_audio_folder, exist_ok=True)
 
 # Load and combine datasets
@@ -40,8 +41,24 @@ for input in inputs:
 training_datasets = [input['dataset'] for input in inputs if input['split'] == 'train']
 
 training_dataset = tf.data.Dataset.concatenate(*training_datasets).shuffle(20000, reshuffle_each_iteration=False)
-train, val = stratified_split(training_dataset)
 
+'''
+***** Choose whether to create a validation set or not. *****
+
+- If you do not want to create a validation set, use Option 1 and comment out Option 2.
+- If you want to create a validation set, use Option 2 and comment out Option 1.
+
+Note: The option you use depends on your training strategy and whether you want to validate your model 
+during training. If using cross-validation, you may not need a separate validation set and it would be
+better to use all available data for training. If you are not using cross-validation, it is recommended 
+to create a validation set.
+'''
+
+# Option 1 - No validation set - Better for cross-validation
+# write_tfrecords(training_dataset, os.path.join(output_audio_folder, "train"))
+
+# Option 2 - Create a validation set - Better for regular (non-cross-validation) training
+train, val = stratified_split(training_dataset)
 for split, name in zip([train, val], ["train", "validate"]):
     write_tfrecords(split, os.path.join(output_audio_folder, f"{name}"))
 
@@ -52,4 +69,3 @@ testing_datasets = [input['dataset'] for input in inputs if input['split'] == 't
 testing_dataset = tf.data.Dataset.concatenate(*testing_datasets).shuffle(10000, reshuffle_each_iteration=False)
 
 write_tfrecords(testing_dataset, os.path.join(output_audio_folder, f"test"))
-

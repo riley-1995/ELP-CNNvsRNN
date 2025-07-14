@@ -1,7 +1,12 @@
 import os
 import numpy as np
 import tensorflow as tf
-import argparse
+# import argparse
+from data_path_config import DataPathConfig
+
+paths = DataPathConfig()
+INPUT_AUDIO_TFR_FOLDER = paths.TFRECORDS_AUDIO_DIR
+OUTPUT_SPEC_FOLDER = paths.TFRECORDS_SPECTROGRAM_DIR
 
 def write_tfrecords(dataset: tf.data.Dataset, file_prefix):
 
@@ -66,7 +71,7 @@ def median_filter(spectrogram):
 
 def apply_stft(dataset, frame_length, frame_step, sample_rate, max_frequency):
     freq_resolution = sample_rate / frame_length
-    tf.print(freq_resolution)
+    tf.print(f"stft frequency resolution: {freq_resolution}")
     bins_to_grab = int(max_frequency / freq_resolution)
     return dataset.map(lambda audio, label: (stft_hann_window(audio, frame_length, frame_step, bins_to_grab), label), 
                        num_parallel_calls=tf.data.AUTOTUNE)
@@ -87,25 +92,29 @@ def normalize_spectrogram(spectrogram, global_mean, global_std):
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate spectrograms from TFRecords.")
-    parser.add_argument("--audio_tfrecords_directory", type=str, required=True, help="Path to the directory containing audio TFRecords.")
-    parser.add_argument("--output_folder", type=str, required=True, help="Path to save the spectrogram dataset.")
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="Generate spectrograms from TFRecords.")
+    # parser.add_argument("--audio_tfrecords_directory", type=str, required=True, help="Path to the directory containing audio TFRecords.")
+    # parser.add_argument("--output_folder", type=str, required=True, help="Path to save the spectrogram dataset.")
+    # args = parser.parse_args()
 
-    # Create spectrograms and write
-    audio_files_directory = args.audio_tfrecords_directory
-    spectrogram_dataset = args.output_folder
+    # # Create spectrograms and write
+    # audio_files_directory = args.audio_tfrecords_directory
+    # spectrogram_dataset = args.output_folder
 
-    if not os.path.exists(spectrogram_dataset) or not os.path.isdir(spectrogram_dataset):
-        os.mkdir(spectrogram_dataset)
+    if not os.path.exists(INPUT_AUDIO_TFR_FOLDER) or not os.path.isdir(INPUT_AUDIO_TFR_FOLDER):
+        print("Invalid input folder. Ensure audio tfrecords data has been created (using create_tfrecords.py), ensure paths are correct, and try running again.")
+        exit()
+
+    if not os.path.exists(OUTPUT_SPEC_FOLDER) or not os.path.isdir(OUTPUT_SPEC_FOLDER):
+        os.mkdir(OUTPUT_SPEC_FOLDER)
         
     # Load the audio tfrecords
     files = []
-    for file in os.listdir(audio_files_directory):
+    for file in os.listdir(INPUT_AUDIO_TFR_FOLDER):
         if file.endswith(".tfrecord"):
             files.append(
                 (
-                    os.path.join(audio_files_directory, file),
+                    os.path.join(INPUT_AUDIO_TFR_FOLDER, file),
                     os.path.basename(file.replace(".tfrecord", ""))
                 ))
 
@@ -124,7 +133,7 @@ def main():
     for dataset, file_name in datasets:
         normalized_dataset = dataset.map(lambda spectrogram, label: (normalize_spectrogram(spectrogram, global_mean, global_std), label), num_parallel_calls=tf.data.AUTOTUNE)
         
-        write_tfrecords(normalized_dataset, os.path.join(spectrogram_dataset, f"{file_name}"))
+        write_tfrecords(normalized_dataset, os.path.join(OUTPUT_SPEC_FOLDER, f"{file_name}"))
 
 if __name__ == "__main__":
     main()
