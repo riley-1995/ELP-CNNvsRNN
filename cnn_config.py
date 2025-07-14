@@ -1,14 +1,18 @@
 # Configuration used for training
 import os
+from pathlib import Path
+from data_creation.data_path_config import DataPathConfig
+
 
 class CNNConfig(object):
 
+	paths = DataPathConfig()
 	# Data related
-	DATASET_FOLDER = '/home/lbutler2/ELP-CNN-Spectrogram/data/spectrogram_cherrypicked'
+	DATASET_FOLDER = paths.TFRECORDS_SPECTROGRAM_DIR
 
 	TRAIN_FILE = 'train.tfrecord'
 	VALIDATE_FILE = 'validate.tfrecord'
-	TEST_FILE = 'toughset_test.tfrecord'
+	TEST_FILE = 'test.tfrecord'
 
 	K_FOLDS=5
 	MAX_CV_EPOCHS=5

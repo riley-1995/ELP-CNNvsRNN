@@ -47,6 +47,9 @@ def trainable(config):
         "train_acc": 0
     }
     cfg = config['config']
+    print(f"Training with config: {config}")
+    print(f"config['config']: {config['config']}")
+    print(f"Dataset folder: {cfg.DATASET_FOLDER}")
 
     run_folder = f"training_run_{config['name']}-{os.path.basename(cfg.DATASET_FOLDER)}"
 
