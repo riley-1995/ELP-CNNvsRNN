@@ -7,3 +7,4 @@ matplotlib
 scikit-learn
 librosa
 scipy
+dotenv
