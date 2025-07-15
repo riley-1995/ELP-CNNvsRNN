@@ -5,10 +5,10 @@
 #SBATCH --partition=gpu-shared
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=10
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=32G
 #SBATCH --gpus=1
-#SBATCH --time=01:00:00
+#SBATCH --time=04:00:00
 #SBATCH --output=%x.o%j.%N
 
 declare -xr SINGULARITY_MODULE='singularitypro/3.11'
