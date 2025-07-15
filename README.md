@@ -389,7 +389,7 @@ watch -n 5 'du -sh /expanse/lustre/projects/cso100/$USER/elp_container/ELP-CNNvs
 
 ---
 
-## Running Experiments
+# Running Experiments
 
 ### Local Terminal:
 
@@ -439,3 +439,39 @@ Or submit with:
 sbatch scripts/run-train-gpu-shared.sh
 ```
 
+# Other Tools/Resources
+
+## RavenPro (or RavenLite - free) 
+- Can be used to view and annotate audio waveforms and spectrograms
+
+https://www.ravensoundsoftware.com/software/
+https://www.ravensoundsoftware.com/knowledge-base/
+
+## San Diego Supercomputer Center
+
+#### SDSC Basic Skills
+- Includes basic Linux skills, interactive computing, running Jupyter notebooks on Expanse, and info on using git/Github
+
+https://github.com/sdsc-hpc-training-org/basic_skills
+
+#### Intermediate Linux Workshop Slides
+- Useful for navigating ACCESS Expanse server. Slides are from July 2025. Webinar video not yet available (as of July 2025) however they will soon be uploaded to SDSC On-Demand Learning archive. Previous Intermediate Linux webinars can be found there as well.
+
+https://drive.google.com/file/d/1t8WwPcnAsieVc-3jisJiQyw6jFBv4Hmb/view?usp=sharing
+
+
+#### SDSC On-Demand Learning
+- Archive of webinars, educational videos, github repos and other educational resources related to the SDSC.
+
+https://www.sdsc.edu/education/on-demand-learning/index.html
+
+
+## Previous and current ELP Research, as well as related research with Dr. Siewert
+
+#### 2024-2025 ELP CNN vs RNN research from which this repo builds upon:
+https://www.ecst.csuchico.edu/~sbsiewert/extra/research/elephant/SSIF-2025-ELP-Presentation.pdf
+
+#### Other research:
+https://sites.google.com/csuchico.edu/research/home
+
+ 
