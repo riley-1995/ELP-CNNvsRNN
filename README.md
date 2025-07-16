@@ -399,21 +399,55 @@ python cross_validation_experiment.py cnn  # or rnn
 
 ### SLURM Batch Job:
 
+For running cross-validation tuning experiment to find best hyperparameters:
 ```bash
 sbatch scripts/run-cross_validation_experiment-gpu-shared.sh
 ```
 
-Monitor with:
-
+For training debugging, making sure paths are correct, etc.:
 ```bash
-squeue -u $USER
+sbatch scripts/run-train-gpu-shared.sh
 ```
 
-SSH into node to check GPU:
+For full training:
+```bash
+sbatch scripts/run-train-gpu-shared.sh
+```
 
+#### Monitor your job:
+
+The job id, job name, status, node, and other info about the job can be found via:
+```
+squeue -u $USER -l
+``` 
+
+SSH into node to check GPU:
 ```bash
 ssh <node>
 nvtop
+```
+
+#### Check output logs:
+```bash
+ls -lh train.o*
+```
+
+Note: Replace train with whatever the job name is, which can be found in the script or with the squeue command above. For example, for a script, the job-name is assigned here:
+```
+#SBATCH --job-name=train-debug
+```
+Therefore, use:
+```bash
+ls -lh train-debug.o*
+```
+
+To see the logs:
+```bash
+cat <name of file>
+```
+Ex:
+```bash
+cat train.o41166992.exp-14-58
 ```
 
 ---
