@@ -4,7 +4,7 @@
 #SBATCH --account=cso100
 #SBATCH --partition=gpu-shared
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=10
+#SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=32G
 #SBATCH --gpus=1
@@ -19,4 +19,4 @@ module list
 
 export NVIDIA_DISABLE_REQUIRE=true
 
-time -p singularity exec --bind /expanse,/scratch --nv ./sandbox python -u ./train.py
+time -p singularity exec --bind /expanse,/scratch --nv ../sandbox python -u ./train.py
