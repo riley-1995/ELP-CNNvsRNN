@@ -483,6 +483,9 @@ https://www.ravensoundsoftware.com/knowledge-base/
 
 ## San Diego Supercomputer Center
 
+#### SDSC User Guide
+https://www.sdsc.edu/systems/expanse/user_guide.html#narrow-wysiwyg-7
+
 #### SDSC Basic Skills
 - Includes basic Linux skills, interactive computing, running Jupyter notebooks on Expanse, and info on using git/Github
 
