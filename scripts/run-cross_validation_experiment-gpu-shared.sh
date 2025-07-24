@@ -9,7 +9,7 @@
 #SBATCH --mem=32G
 #SBATCH --gpus=1
 #SBATCH --time=04:00:00
-#SBATCH --output=%x.o%j.%N
+#SBATCH --output=slurm_logs/%x.o%j.%N
 
 declare -xr SINGULARITY_MODULE='singularitypro/3.11'
 
