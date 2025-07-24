@@ -19,4 +19,12 @@ module list
 
 export NVIDIA_DISABLE_REQUIRE=true
 
+<<<<<<< HEAD
 time -p singularity exec --bind /expanse,/scratch --nv ../sandbox python -u ./train.py
+=======
+<<<<<<< Updated upstream
+time -p singularity exec --bind /expanse,/scratch --nv ./train-container-sandbox python -u ./train.py
+=======
+time -p singularity exec --bind /expanse,/scratch --nv ./sandbox python -u ./train.py --model cnn
+>>>>>>> Stashed changes
+>>>>>>> 8d6a756 (Update training scripts with argparser)

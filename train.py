@@ -5,6 +5,7 @@ import tensorflow as tf
 from utils import read_tfrecords, get_tfrecord_length
 import os
 import csv
+import argparse
 
 from cnn_config import CNNConfig
 from rnn_config import RNNConfig
@@ -162,7 +163,12 @@ def trainable(config):
 
 if __name__ == '__main__':
 
-    cnn = False
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--model', choices=['cnn', 'rnn'], default='cnn', help='Model type to train')
+    args = parser.parse_args()
+
+    cnn = args.model == 'cnn'
+    
     # CNN
     if cnn: 
         training_config = {  

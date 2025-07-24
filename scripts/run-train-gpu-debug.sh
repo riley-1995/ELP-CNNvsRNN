@@ -19,4 +19,4 @@ module list
 
 export NVIDIA_DISABLE_REQUIRE=true
 
-time -p singularity exec --bind /expanse,/scratch --nv ../sandbox python -u ./train.py
+time -p singularity exec --bind /expanse,/scratch --nv ../sandbox python -u ./train.py --model cnn
