@@ -10,4 +10,4 @@
 
 module load singularitypro/3.11
 
-time -p singularity exec --bind /expanse,/scratch --nv ../sandbox python -u ./test_underfitting.py
+time -p singularity exec --bind "$PWD":/mnt,/expanse,/scratch --nv ../sandbox python -u /mnt/test_underfitting.py
